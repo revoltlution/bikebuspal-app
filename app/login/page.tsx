@@ -67,8 +67,8 @@ export default function LoginPage() {
         }
 
         const actionCodeSettings = {
-        //url: `${window.location.origin}/login`, // later for production
-        url: "http://localhost:3000/login",
+        url: `${window.location.origin}/login`, // later for production
+        //url: "http://localhost:3000/login",
         handleCodeInApp: true,
         };
 
