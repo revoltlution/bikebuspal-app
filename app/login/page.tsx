@@ -58,16 +58,28 @@ export default function LoginPage() {
   }
 
   async function onEmailLink() {
-    setStatus("");
-    const actionCodeSettings = {
-      url: `${window.location.origin}/login`,
-      handleCodeInApp: true,
-    };
+    try {
+        setStatus("");
 
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    window.localStorage.setItem("emailForSignIn", email);
-    setStatus("Email link sent. Check your inbox.");
-  }
+        if (!email.trim()) {
+        setStatus("Enter an email first.");
+        return;
+        }
+
+        const actionCodeSettings = {
+        //url: `${window.location.origin}/login`, // later for production
+        url: "http://localhost:3000/login",
+        handleCodeInApp: true,
+        };
+
+        await sendSignInLinkToEmail(auth, email.trim(), actionCodeSettings);
+        window.localStorage.setItem("emailForSignIn", email.trim());
+        setStatus("Email link sent. Check your inbox.");
+    } catch (e: any) {
+        console.error(e);
+        setStatus(e?.message ?? String(e));
+    }
+    }
 
   return (
     <div style={{ maxWidth: 420, margin: "40px auto", padding: 16 }}>
