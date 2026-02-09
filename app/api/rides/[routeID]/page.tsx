@@ -1,0 +1,109 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { adminDb } from "@/lib/firebase/adminDb";
+import { getUserFromSession } from "@/lib/auth/getUserFromSession";
+import { JoinRideButtons } from "@/components/JoinRideButtons";
+
+type RouteDoc = {
+  name: string;
+  schoolName: string;
+  city: string;
+  weekday: number;
+  startTimeLocal: string;
+  timezone: string;
+  startLocationLabel: string;
+  active: boolean;
+};
+
+type RideInstanceDoc = {
+  routeId: string;
+  date: string;
+  startDateTime: any; // Firestore Timestamp
+  leaderUserIds: string[];
+  joinedUserIds: string[];
+  status: "scheduled" | "active" | "ended" | "canceled";
+};
+
+export default async function RouteDetailPage({
+  params,
+}: {
+  params: { routeId: string };
+}) {
+  const user = await getUserFromSession();
+  if (!user) redirect("/login");
+
+  const db = adminDb();
+  const routeRef = db.collection("routes").doc(params.routeId);
+  const routeSnap = await routeRef.get();
+
+  if (!routeSnap.exists) redirect("/routes");
+
+  const route = routeSnap.data() as RouteDoc;
+
+  const now = new Date();
+  const ridesSnap = await db
+    .collection("rideInstances")
+    .where("routeId", "==", params.routeId)
+    .where("startDateTime", ">=", now)
+    .orderBy("startDateTime", "asc")
+    .limit(10)
+    .get();
+
+  const rides = ridesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as RideInstanceDoc) }));
+
+  return (
+    <main style={{ padding: 16, maxWidth: 720, margin: "0 auto" }}>
+      <p>
+        <Link href="/routes">← Back to Routes</Link>
+      </p>
+
+      <h1 style={{ marginTop: 8 }}>{route.name}</h1>
+      <p>
+        {route.schoolName} • {route.city}
+      </p>
+      <p>
+        <strong>Meet:</strong> {route.startLocationLabel}
+      </p>
+
+      <h2 style={{ marginTop: 24 }}>Upcoming rides</h2>
+
+      <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+        {rides.length === 0 ? (
+          <p>No upcoming rides found.</p>
+        ) : (
+          rides.map((r) => {
+            const start = new Date(r.startDateTime.toDate()).toLocaleString();
+            const leaders = r.leaderUserIds?.length ?? 0;
+            const joined = r.joinedUserIds?.length ?? 0;
+            const leaderNeeded = leaders === 0;
+            const iJoined = (r.joinedUserIds ?? []).includes(user.uid);
+            const iLead = (r.leaderUserIds ?? []).includes(user.uid);
+
+            return (
+              <div key={r.id} style={{ padding: 12, border: "1px solid #ddd", borderRadius: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{start}</div>
+                    <div>
+                      {leaderNeeded ? "⚠️ Leader needed" : `✅ Leaders: ${leaders}`} • Joined: {joined}
+                    </div>
+                    <div style={{ marginTop: 6 }}>
+                      {iJoined ? (
+                        <span>{iLead ? "You are a leader for this ride." : "You joined this ride."}</span>
+                      ) : (
+                        <JoinRideButtons rideId={r.id} />
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 12, opacity: 0.75 }}>{r.status}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </main>
+  );
+}

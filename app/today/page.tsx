@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
 import { LogoutButton } from "@/components/LogoutButton";
+import Link from "next/link";
 
 
 export default async function TodayPage() {
@@ -10,9 +11,12 @@ export default async function TodayPage() {
   return (
     <main style={{ padding: 16, maxWidth: 720, margin: "0 auto" }}>
         <LogoutButton />
+        
       <h1>Today</h1>
       <p>Signed in as: {user.email ?? user.uid}</p>
 
+      <p><Link href="/routes">View Routes</Link></p>
+      
       <section style={{ marginTop: 24 }}>
         <h2>Next Ride</h2>
         <div style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
