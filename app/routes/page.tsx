@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/firebase/adminDb";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
+import { StarRouteButton } from "@/components/StarRouteButton";
+
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,7 +41,9 @@ export default async function RoutesPage() {
   const now = new Date();
   const nextByRoute = new Map<string, (RideInstanceDoc & { id: string })>();
   
-  
+  const userSnap = await db.collection("users").doc(user.uid).get();
+  const starredRouteIds = new Set<string>((userSnap.data()?.starredRouteIds ?? []) as string[]);
+
 
   const ridesSnap = await db
     .collection("rideInstances")
@@ -84,6 +88,7 @@ export default async function RoutesPage() {
                 </div>
 
                 <div style={{ textAlign: "right" }}>
+                    
                     <div style={{ marginBottom: 6 }}>
                         {leaders === 0 ? "⚠️ Leader needed" : "✅ Leader assigned"}
                     </div>
@@ -95,6 +100,10 @@ export default async function RoutesPage() {
                     ) : (
                         <div className="badge">No upcoming ride</div>
                     )}
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
+                        <StarRouteButton routeId={r.id} starred={starredRouteIds.has(r.id)} />
+                        <Link className="link" href={`/routes/${r.id}`}>View →</Link>
+                        </div>
 
                     <div style={{ marginTop: 8 }}>
                         <Link className="link" href={`/routes/${r.id}`}>View Details →</Link>

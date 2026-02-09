@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/firebase/adminDb";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
 import { RideRoleButtons } from "@/components/RideRoleButtons";
+import { StarRouteButton } from "@/components/StarRouteButton";
 
 type RouteDoc = {
   name: string;
@@ -52,6 +53,9 @@ export default async function RouteDetailPage({
 
   const rides = ridesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as RideInstanceDoc) }));
 
+  const userSnap = await db.collection("users").doc(user.uid).get();
+  const starredRouteIds = new Set<string>((userSnap.data()?.starredRouteIds ?? []) as string[]);
+
   return (
     <main className="page">
       <p>
@@ -99,6 +103,10 @@ export default async function RouteDetailPage({
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
+                        <StarRouteButton routeId={r.id} starred={starredRouteIds.has(r.id)} />
+                        <Link className="link" href={`/routes/${r.id}`}>View →</Link>
+                        </div>
                     <div className="badge">{r.status}</div>
                   </div>
                 </div>
