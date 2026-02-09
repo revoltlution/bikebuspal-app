@@ -27,23 +27,24 @@ type RideInstanceDoc = {
 export default async function RouteDetailPage({
   params,
 }: {
-  params: { routeId: string };
+  params: Promise<{ routeId: string }>;
 }) {
+  const { routeId } = await params;
+  if (!routeId) redirect("/routes");
+
   const user = await getUserFromSession();
   if (!user) redirect("/login");
 
   const db = adminDb();
-  const routeRef = db.collection("routes").doc(params.routeId);
-  const routeSnap = await routeRef.get();
 
+  const routeSnap = await db.collection("routes").doc(routeId).get();
   if (!routeSnap.exists) redirect("/routes");
-
   const route = routeSnap.data() as RouteDoc;
 
   const now = new Date();
   const ridesSnap = await db
     .collection("rideInstances")
-    .where("routeId", "==", params.routeId)
+    .where("routeId", "==", routeId)
     .where("startDateTime", ">=", now)
     .orderBy("startDateTime", "asc")
     .limit(10)
