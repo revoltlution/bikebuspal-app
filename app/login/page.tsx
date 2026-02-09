@@ -82,26 +82,28 @@ export default function LoginPage() {
     }
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto", padding: 16 }}>
-      <h1>Sign in</h1>
+    <main className="page">
+        <div style={{ maxWidth: 420, margin: "40px auto", padding: 16 }}>
+        <h1>Sign in</h1>
 
-      <button onClick={onGoogle} style={{ width: "100%", padding: 12 }}>
-        Continue with Google
-      </button>
+        <button onClick={onGoogle} style={{ width: "100%", padding: 12 }}>
+            Continue with Google
+        </button>
 
-      <hr style={{ margin: "20px 0" }} />
+        <hr style={{ margin: "20px 0" }} />
 
-      <input
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Enter email for magic link"
-        style={{ width: "100%", padding: 12, marginBottom: 12 }}
-      />
-      <button onClick={onEmailLink} style={{ width: "100%", padding: 12 }}>
-        Send sign-in link
-      </button>
+        <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter email for magic link"
+            style={{ width: "100%", padding: 12, marginBottom: 12 }}
+        />
+        <button onClick={onEmailLink} style={{ width: "100%", padding: 12 }}>
+            Send sign-in link
+        </button>
 
-      {status ? <p style={{ marginTop: 12 }}>{status}</p> : null}
-    </div>
+        {status ? <p style={{ marginTop: 12 }}>{status}</p> : null}
+        </div>
+    </main>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/firebase/adminDb";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
-import { JoinRideButtons } from "@/components/JoinRideButtons";
+import { RideRoleButtons } from "@/components/RideRoleButtons";
 
 type RouteDoc = {
   name: string;
@@ -53,7 +53,7 @@ export default async function RouteDetailPage({
   const rides = ridesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as RideInstanceDoc) }));
 
   return (
-    <main style={{ padding: 16, maxWidth: 720, margin: "0 auto" }}>
+    <main className="page">
       <p>
         <Link href="/routes">← Back to Routes</Link>
       </p>
@@ -68,7 +68,7 @@ export default async function RouteDetailPage({
 
       <h2 style={{ marginTop: 24 }}>Upcoming rides</h2>
 
-      <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+      <div className="card">
         {rides.length === 0 ? (
           <p>No upcoming rides found.</p>
         ) : (
@@ -79,6 +79,8 @@ export default async function RouteDetailPage({
             const leaderNeeded = leaders === 0;
             const iJoined = (r.joinedUserIds ?? []).includes(user.uid);
             const iLead = (r.leaderUserIds ?? []).includes(user.uid);
+            const isJoined = (r.joinedUserIds ?? []).includes(user.uid);
+            const isLeader = (r.leaderUserIds ?? []).includes(user.uid);
 
             return (
               <div key={r.id} style={{ padding: 12, border: "1px solid #ddd", borderRadius: 10 }}>
@@ -89,11 +91,11 @@ export default async function RouteDetailPage({
                       {leaderNeeded ? "⚠️ Leader needed" : `✅ Leaders: ${leaders}`} • Joined: {joined}
                     </div>
                     <div style={{ marginTop: 6 }}>
-                      {iJoined ? (
-                        <span>{iLead ? "You are a leader for this ride." : "You joined this ride."}</span>
-                      ) : (
-                        <JoinRideButtons rideId={r.id} />
-                      )}
+                      <RideRoleButtons
+                        rideId={r.id}
+                        isJoined={(r.joinedUserIds ?? []).includes(user.uid)}
+                        isLeader={(r.leaderUserIds ?? []).includes(user.uid)}
+                      />
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>

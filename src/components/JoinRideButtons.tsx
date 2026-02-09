@@ -28,6 +28,8 @@ export function JoinRideButtons({ rideId }: { rideId: string }) {
 
       // force server component to refetch
       router.refresh();
+      const j = await r.json();
+      console.log("JOIN_RESULT", j);
 
       // optional: also navigate to same URL to be extra sure
       // router.replace(window.location.pathname);

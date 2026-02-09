@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { adminDb } from "@/lib/firebase/adminDb";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type RouteDoc = {
   name: string;
   schoolName: string;
@@ -18,6 +21,7 @@ type RideInstanceDoc = {
   routeId: string;
   startDateTime: any; // Firestore Timestamp
   leaderUserIds: string[];
+  joinedUserIds: string[];
   status: "scheduled" | "active" | "ended" | "canceled";
 };
 
@@ -34,6 +38,8 @@ export default async function RoutesPage() {
 
   const now = new Date();
   const nextByRoute = new Map<string, (RideInstanceDoc & { id: string })>();
+  
+  
 
   const ridesSnap = await db
     .collection("rideInstances")
@@ -49,10 +55,13 @@ export default async function RoutesPage() {
   }
 
   return (
-    <main style={{ padding: 16, maxWidth: 720, margin: "0 auto" }}>
+    <main className="page">
+      <p>
+        <Link href="/today">← Back to Today</Link>
+      </p>
       <h1>Routes</h1>
 
-      <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+      <div className="card">
         {routes.map((r) => {
           const nextRide = nextByRoute.get(r.id);
           const leaderNeeded = !nextRide || (nextRide.leaderUserIds?.length ?? 0) === 0;
@@ -60,6 +69,9 @@ export default async function RoutesPage() {
           const nextRideTime = nextRide
             ? new Date(nextRide.startDateTime.toDate()).toLocaleString()
             : `${weekdayName[r.weekday]} ${r.startTimeLocal}`;
+
+        const leaders = nextRide?.leaderUserIds?.length ?? 0;
+        const joined = nextRide?.joinedUserIds?.length ?? 0;
 
           return (
             <div key={r.id} style={{ padding: 12, border: "1px solid #ddd", borderRadius: 10 }}>
@@ -72,11 +84,22 @@ export default async function RoutesPage() {
                 </div>
 
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ marginBottom: 8 }}>
-                    {leaderNeeded ? "⚠️ Leader needed" : "✅ Leader assigned"}
-                  </div>
-                  <Link href={`/routes/${r.id}`}>View</Link>
-                </div>
+                    <div style={{ marginBottom: 6 }}>
+                        {leaders === 0 ? "⚠️ Leader needed" : "✅ Leader assigned"}
+                    </div>
+
+                    {nextRide ? (
+                        <div style={{ fontSize: 12, opacity: 0.75 }}>
+                        Leaders: {leaders} • Joined: {joined}
+                        </div>
+                    ) : (
+                        <div style={{ fontSize: 12, opacity: 0.75 }}>No upcoming ride</div>
+                    )}
+
+                    <div style={{ marginTop: 8 }}>
+                        <Link href={`/routes/${r.id}`}>View</Link>
+                    </div>
+                    </div>
               </div>
             </div>
           );

@@ -3,6 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --page-max: 720px;
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 16px;
+
+  --border: #ddd;
+  --text-muted: rgba(0, 0, 0, 0.7);
+
+  --radius: 10px;
 }
 
 @theme inline {
@@ -17,6 +27,57 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+.page {
+  padding: var(--space-3);
+  max-width: var(--page-min);
+  margin: 0 auto;
+}
+
+.card {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stack {
+  display: grid;
+  gap: 12px;
+}
+
+.muted {
+  opacity: 0.8;
+}
+
+.btn {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  border-color: #bbb;
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 12px;
+  opacity: 0.8;
 }
 
 body {
