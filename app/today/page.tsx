@@ -15,7 +15,7 @@ export default async function TodayPage() {
       <h1>Today</h1>
       <p>Signed in as: {user.email ?? user.uid}</p>
 
-      <p><Link href="/routes">View Routes</Link></p>
+      <p><Link className="link" href="/routes">View Routes →</Link></p>
 
       <section style={{ marginTop: 24 }}>
         <h2>Next Ride</h2>

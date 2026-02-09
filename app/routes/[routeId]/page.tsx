@@ -55,7 +55,7 @@ export default async function RouteDetailPage({
   return (
     <main className="page">
       <p>
-        <Link href="/routes">← Back to Routes</Link>
+        <Link className="link" href="/routes">← Back to Routes</Link>
       </p>
 
       <h1 style={{ marginTop: 8 }}>{route.name}</h1>
@@ -68,7 +68,7 @@ export default async function RouteDetailPage({
 
       <h2 style={{ marginTop: 24 }}>Upcoming rides</h2>
 
-      <div className="card">
+      <div className="stack" style={{ marginTop: 12 }}>
         {rides.length === 0 ? (
           <p>No upcoming rides found.</p>
         ) : (
@@ -83,8 +83,8 @@ export default async function RouteDetailPage({
             const isLeader = (r.leaderUserIds ?? []).includes(user.uid);
 
             return (
-              <div key={r.id} style={{ padding: 12, border: "1px solid #ddd", borderRadius: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+              <div key={r.id} className="card">
+                <div className="row">
                   <div>
                     <div style={{ fontWeight: 700 }}>{start}</div>
                     <div>
@@ -99,7 +99,7 @@ export default async function RouteDetailPage({
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 12, opacity: 0.75 }}>{r.status}</div>
+                    <div className="badge">{r.status}</div>
                   </div>
                 </div>
               </div>

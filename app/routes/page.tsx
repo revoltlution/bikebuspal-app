@@ -57,11 +57,11 @@ export default async function RoutesPage() {
   return (
     <main className="page">
       <p>
-        <Link href="/today">← Back to Today</Link>
+        <Link className="link" href="/today">← Back to Today</Link>
       </p>
       <h1>Routes</h1>
 
-      <div className="card">
+      <div className="stack" style={{ marginTop: 16 }}>
         {routes.map((r) => {
           const nextRide = nextByRoute.get(r.id);
           const leaderNeeded = !nextRide || (nextRide.leaderUserIds?.length ?? 0) === 0;
@@ -74,8 +74,8 @@ export default async function RoutesPage() {
         const joined = nextRide?.joinedUserIds?.length ?? 0;
 
           return (
-            <div key={r.id} style={{ padding: 12, border: "1px solid #ddd", borderRadius: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+            <div key={r.id} className="card">
+              <div className="row">
                 <div>
                   <div style={{ fontWeight: 700 }}>{r.name}</div>
                   <div>{r.schoolName} • {r.city}</div>
@@ -89,17 +89,17 @@ export default async function RoutesPage() {
                     </div>
 
                     {nextRide ? (
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
+                        <div className="badge">
                         Leaders: {leaders} • Joined: {joined}
                         </div>
                     ) : (
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>No upcoming ride</div>
+                        <div className="badge">No upcoming ride</div>
                     )}
 
                     <div style={{ marginTop: 8 }}>
-                        <Link href={`/routes/${r.id}`}>View</Link>
+                        <Link className="link" href={`/routes/${r.id}`}>View Details →</Link>
                     </div>
-                    </div>
+                </div>
               </div>
             </div>
           );

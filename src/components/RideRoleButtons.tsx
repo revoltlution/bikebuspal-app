@@ -61,28 +61,28 @@ export function RideRoleButtons({
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         {!effectiveJoined ? (
             <>
-            <button type="button" disabled={busy} onClick={() => setRole("volunteer")} style={{ padding: "10px 12px" }}>
+            <button type="button" disabled={busy} onClick={() => setRole("volunteer")} className="btn">
                 Join as Volunteer
             </button>
-            <button type="button" disabled={busy} onClick={() => setRole("leader")} style={{ padding: "10px 12px" }}>
+            <button type="button" disabled={busy} onClick={() => setRole("leader")} className="btn primary">
                 Join as Leader
             </button>
             </>
         ) : isLeader ? (
             <>
-            <button type="button" disabled={busy} onClick={() => setRole("volunteer")} style={{ padding: "10px 12px" }}>
+            <button type="button" disabled={busy} onClick={() => setRole("volunteer")} className="btn">
                 Step down to Volunteer
             </button>
-            <button type="button" disabled={busy} onClick={() => setRole("none")} style={{ padding: "10px 12px" }}>
+            <button type="button" disabled={busy} onClick={() => setRole("none")} className="btn">
                 Remove from Ride
             </button>
             </>
         ) : (
             <>
-            <button type="button" disabled={busy} onClick={() => setRole("leader")} style={{ padding: "10px 12px" }}>
-                Become Leader
+            <button type="button" disabled={busy} onClick={() => setRole("leader")} className="btn primary">
+                Join as Leader
             </button>
-            <button type="button" disabled={busy} onClick={() => setRole("none")} style={{ padding: "10px 12px" }}>
+            <button type="button" disabled={busy} onClick={() => setRole("none")} className="btn">
                 Remove from Ride
             </button>
             </>
