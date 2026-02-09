@@ -94,7 +94,7 @@ export default function LoginPage() {
       <input
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email for magic link"
+        placeholder="Enter email for magic link"
         style={{ width: "100%", padding: 12, marginBottom: 12 }}
       />
       <button onClick={onEmailLink} style={{ width: "100%", padding: 12 }}>
