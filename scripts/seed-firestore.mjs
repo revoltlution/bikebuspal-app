@@ -43,6 +43,7 @@ async function upsertRoutes(db) {
       timezone: "America/Los_Angeles",
       startLocationLabel: "Meet at George Park",
       active: true,
+      minLeadersNeeded: 3
     },
     {
       id: "sitton-es",
@@ -54,6 +55,7 @@ async function upsertRoutes(db) {
       timezone: "America/Los_Angeles",
       startLocationLabel: "Main entrance meetup",
       active: true,
+      minLeadersNeeded: 2
     },
   ];
 

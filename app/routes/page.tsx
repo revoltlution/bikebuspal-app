@@ -104,10 +104,6 @@ export default async function RoutesPage() {
                         <StarRouteButton routeId={r.id} starred={starredRouteIds.has(r.id)} />
                         <Link className="link" href={`/routes/${r.id}`}>View →</Link>
                         </div>
-
-                    <div style={{ marginTop: 8 }}>
-                        <Link className="link" href={`/routes/${r.id}`}>View Details →</Link>
-                    </div>
                 </div>
               </div>
             </div>

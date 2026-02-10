@@ -29,14 +29,17 @@ export function StarRouteButton({
 
   return (
     <button
-      type="button"
-      className="btn"
-      disabled={busy}
-      onClick={toggle}
-      aria-label={starred ? "Unstar route" : "Star route"}
-      title={starred ? "Unstar route" : "Star route"}
+        type="button"
+        className={`btn ${starred ? 'starred' : ''}`}
+        disabled={busy}
+        onClick={toggle}
+        aria-label={starred ? "Unstar route" : "Star route"}
+        title={starred ? "Unstar route" : "Star route"}
     >
-      {starred ? "★ Starred" : "☆ Star"}
+        <span style={{ color: starred ? '#FFD700' : 'inherit', marginRight: '6px' }}>
+        {starred ? '★' : '☆'}
+        </span>
+        {starred ? "Starred" : "Star"}
     </button>
-  );
+    );
 }

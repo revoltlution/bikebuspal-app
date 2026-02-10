@@ -9,11 +9,11 @@ type RouteDoc = {
   name: string;
   schoolName: string;
   city: string;
-  weekday: number;
-  startTimeLocal: string;
-  timezone: string;
   startLocationLabel: string;
+  startTimeLocal: string;
+  weekday: number;
   active: boolean;
+  minLeadersNeeded?: number; // default to 1 when missing
 };
 
 type RideInstanceDoc = {
@@ -79,8 +79,11 @@ export default async function RouteDetailPage({
           rides.map((r) => {
             const start = new Date(r.startDateTime.toDate()).toLocaleString();
             const leaders = r.leaderUserIds?.length ?? 0;
+            const min = route.minLeadersNeeded ?? 1;
+            
             const joined = r.joinedUserIds?.length ?? 0;
-            const leaderNeeded = leaders === 0;
+            const leaderNeeded = leaders < min;
+
             const iJoined = (r.joinedUserIds ?? []).includes(user.uid);
             const iLead = (r.leaderUserIds ?? []).includes(user.uid);
             const isJoined = (r.joinedUserIds ?? []).includes(user.uid);
