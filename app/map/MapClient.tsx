@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { db } from "@/src/lib/firebase/client";
 import { collection, getDocs } from "firebase/firestore";
 
-// Define the point shape to match Firestore/MapControl
 interface MapPoint {
   lat: number;
   lng: number;
@@ -18,25 +17,21 @@ interface MapControlProps {
 
 const MapControl = dynamic<MapControlProps>(() => import("@/src/components/MapControl"), { 
   ssr: false,
-  loading: () => <div className="h-full bg-slate-100 animate-pulse flex items-center justify-center">Loading...</div>
+  loading: () => <div className="h-full bg-slate-100 animate-pulse flex items-center justify-center rounded-3xl">Loading...</div>
 });
 
-export default function MapClient({ initialRoutes }: { initialRoutes: any }) {
+export default function MapClient({ initialRoutes = {} }: { initialRoutes?: any }) {
   const router = useRouter();
-  // Initialize 'routes' with the dummy data passed from the server
-  const [routes, setRoutes] = useState<any[]>(() => {
-    return Object.entries(initialRoutes).map(([id, coords]) => ({
-      id,
-      name: id.replace(/_/g, ' ').toUpperCase(),
-      coordinates: coords
-    }));
-  });
   
-  const [selectedRouteId, setSelectedRouteId] = useState(Object.keys(initialRoutes)[0] || "");
+  // 1. Start with an empty array. No more hardcoded "JJE" defaults.
+  const [routes, setRoutes] = useState<any[]>([]);
+  const [selectedRouteId, setSelectedRouteId] = useState("");
   const [isLive, setIsLive] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadRoutes = async () => {
+      setLoading(true);
       try {
         const querySnapshot = await getDocs(collection(db, "routes"));
         const firestoreRoutes = querySnapshot.docs.map(doc => ({
@@ -44,13 +39,18 @@ export default function MapClient({ initialRoutes }: { initialRoutes: any }) {
           ...doc.data()
         }));
         
-        // If we found real routes in Firestore, prioritize them
         if (firestoreRoutes.length > 0) {
           setRoutes(firestoreRoutes);
           setSelectedRouteId(firestoreRoutes[0].id);
+        } else {
+          // 2. Clear state if Firestore is empty
+          setRoutes([]);
+          setSelectedRouteId("");
         }
       } catch (err) {
-        console.error("Firestore fetch failed, using dummy data:", err);
+        console.error("Firestore fetch failed:", err);
+      } finally {
+        setLoading(false);
       }
     };
     loadRoutes();
@@ -62,13 +62,11 @@ export default function MapClient({ initialRoutes }: { initialRoutes: any }) {
     <div className="flex flex-col h-full px-4">
       <div className="w-full h-[60vh] rounded-3xl overflow-hidden relative shadow-lg border border-slate-200">
         
-        {/* Pass the actual coordinates from Firestore to the Map */}
+        {/* 3. Map will now show default St. Johns view if coordinates are empty */}
         <MapControl customData={activeRoute?.coordinates || []} />
         
-        {/* UI Overlay Controls */}
         <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2">
           
-          {/* BROWSE / LIVE Toggle */}
           <div className="flex bg-white/95 backdrop-blur-md p-1 rounded-2xl shadow-xl border border-white/20">
             <button 
               onClick={() => setIsLive(false)} 
@@ -84,9 +82,9 @@ export default function MapClient({ initialRoutes }: { initialRoutes: any }) {
             </button>
           </div>
 
-          {/* Route Dropdown (Populated by Firestore) */}
+          {/* 4. Dropdown only shows if we actually have routes */}
           {!isLive && routes.length > 0 && (
-            <div className="relative">
+            <div className="relative animate-in fade-in slide-in-from-top-1">
               <select 
                 value={selectedRouteId}
                 onChange={(e) => setSelectedRouteId(e.target.value)}
@@ -101,7 +99,6 @@ export default function MapClient({ initialRoutes }: { initialRoutes: any }) {
           )}
         </div>
 
-        {/* Floating Action Button (FAB) */}
         {!isLive && (
           <button 
             onClick={() => router.push("/routes/create")}
@@ -112,13 +109,12 @@ export default function MapClient({ initialRoutes }: { initialRoutes: any }) {
         )}
       </div>
       
-      {/* Route Info Section */}
       <div className="mt-6">
          <h2 className="text-xl font-black italic uppercase text-slate-900 tracking-tight">
-           {activeRoute?.name || "Select a Route"}
+           {loading ? "Loading Routes..." : (activeRoute?.name || "No Routes Available")}
          </h2>
          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-           {activeRoute?.neighborhood || "St. Johns"}
+           {activeRoute ? (activeRoute.neighborhood || "St. Johns") : "Click + to add your first route"}
          </p>
       </div>
     </div>

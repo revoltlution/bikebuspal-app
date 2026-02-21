@@ -30,12 +30,13 @@ interface MapControlProps {
 }
 
 export default function MapControl({ customData }: MapControlProps) {
-  // Check if data exists AND has at least one point
+  const defaultCenter: [number, number] = [45.5898, -122.7538]; // St. Johns center
+
   if (!customData || customData.length === 0) {
     return (
-      <div className="h-full w-full bg-slate-100 flex items-center justify-center rounded-3xl">
-        <p className="text-slate-400 italic">No route data available...</p>
-      </div>
+      <MapContainer center={defaultCenter} zoom={13} className="h-full w-full">
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      </MapContainer>
     );
   }
 
