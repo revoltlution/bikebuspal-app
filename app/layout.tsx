@@ -39,15 +39,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         {/* 3. HEADER: Only render if we AREN'T on the Map page */}
         {!isMapPage && (
-          <header className="flex justify-between items-center px-6 pt-10 pb-2 shrink-0">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">
-              {getPageTitle()}
-            </h1>
-            
-            <Link href="/settings/profile" className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-all border border-slate-200 shadow-sm">
-              <span className="material-symbols-rounded !text-3xl">account_circle</span>
-            </Link>
-          </header>
+          /* Global Header in app/layout.tsx */
+        <header className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-md z-[100] px-6 flex items-center justify-between border-b border-slate-100">
+          <h1 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">
+            {getPageTitle()}
+          </h1>
+
+          <Link href="/settings/profile" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center transition-transform active:scale-90">
+            <span className="material-symbols-rounded text-slate-400">person</span>
+          </Link>
+        </header>
         )}
 
         {/* 4. MAIN: Fill the remaining space. relative is key for the absolute map inside */}
