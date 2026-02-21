@@ -51,9 +51,6 @@ export default function DiscoverPage() {
   return (
     <div className="flex flex-col gap-8 pb-24 animate-in fade-in duration-500">
       <header className="px-2">
-        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 leading-none">
-          Discover <br/>The Community
-        </h2>
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Find a bus near you</p>
       </header>
 
