@@ -67,7 +67,7 @@ export default function MapControl({ activeRoute = 'jje_george_park' }: { active
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <Polyline 
         positions={currentRoute} 
-        pathOptions={{ color: '#FFD700', weight: 8, opacity: 0.8, lineJoin: 'round', lineCap: 'round' }} 
+        pathOptions={{ color: '#00b7ff', weight: 8, opacity: 0.8, lineJoin: 'round', lineCap: 'round' }} 
       />
       <Marker position={currentRoute[0]} icon={icon} />
       <Marker position={currentRoute[currentRoute.length - 1]} icon={icon} />
