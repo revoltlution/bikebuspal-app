@@ -60,14 +60,7 @@ export default async function TodayPage() {
 
   return (
     <main className="page">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight">Today</h1>
-          <p className="text-sm text-slate-500 font-medium">{user.email}</p>
-        </div>
-        <LogoutButton />
-      </div>
-
+      
       <TodayHero user={user} route={activeRoute} ride={nextRide} />
 
       <section className="mb-8">
