@@ -138,26 +138,27 @@ function MapClientContent() {
   const activeRoute = routes.find(r => r.id === selectedRouteId);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-slate-100">
+    /* Main Container: Absolute fill of the parent <main> */
+    <div className="absolute inset-0 flex flex-col overflow-hidden bg-slate-100">
       
-      {/* 1. THE MAP (Full Background - No Margin/Padding) */}
+      {/* 1. THE BACKGROUND MAP */}
       <div className="absolute inset-0 z-0">
         <MapControl customData={activeRoute?.coordinates || []} />
       </div>
 
-      {/* 2. TOP OVERLAY: Filter & Profile */}
-      <div className="absolute top-4 left-4 right-4 z-[1001] flex flex-col gap-3 pointer-events-none">
+      {/* 2. TOP OVERLAY: Neighborhoods & Profile */}
+      <div className="absolute top-0 left-0 right-0 z-[1001] p-4 pt-2 flex flex-col gap-3 pointer-events-none">
         <div className="flex justify-between items-center w-full">
           {/* Neighborhood Filter - Floating Glass Pills */}
           {!isLive && (
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pointer-events-auto max-w-[85%] pr-4">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pointer-events-auto max-w-[85%]">
               {neighborhoods.map((n) => (
                 <button
                   key={n}
                   onClick={() => setSelectedNeighborhood(n)}
                   className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shrink-0 ${
                     selectedNeighborhood === n
-                      ? "bg-slate-900 text-white border-slate-900 shadow-xl scale-105"
+                      ? "bg-slate-900 text-white border-slate-900 shadow-xl"
                       : "bg-white/80 backdrop-blur-md text-slate-500 border-white/20 shadow-lg"
                   }`}
                 >
@@ -167,14 +168,14 @@ function MapClientContent() {
             </div>
           )}
           
-          {/* Floating Profile icon */}
-          <div className="pointer-events-auto bg-white/80 backdrop-blur-md p-1 rounded-full shadow-lg border border-white/20">
-            <span className="material-symbols-rounded text-slate-600 p-1">account_circle</span>
+          {/* Floating Profile Shortcut (Optional since it's in your header) */}
+          <div className="pointer-events-auto bg-white/80 backdrop-blur-md p-1.5 rounded-full shadow-lg border border-white/20">
+            <span className="material-symbols-rounded text-slate-600">account_circle</span>
           </div>
         </div>
 
         {/* Mode Toggle - Centered Floating Glass */}
-        <div className="w-full pointer-events-auto bg-white/70 backdrop-blur-lg p-1 rounded-2xl shadow-2xl border border-white/40 max-w-sm mx-auto">
+        <div className="w-full max-w-sm mx-auto pointer-events-auto bg-white/70 backdrop-blur-lg p-1 rounded-2xl shadow-2xl border border-white/40">
           <div className="flex gap-1">
             <button
               onClick={() => updatePreference(selectedRouteId, false)}
@@ -193,29 +194,30 @@ function MapClientContent() {
       </div>
 
       {/* 3. BOTTOM OVERLAY: Tools & Details */}
-      <div className="absolute bottom-24 left-4 right-4 z-[1002] flex flex-col pointer-events-none gap-4">
+      {/* Use pb-6 to give breathing room above your Nav bar */}
+      <div className="absolute bottom-6 left-4 right-4 z-[1002] flex flex-col pointer-events-none gap-4">
         
-        {/* Tool Buttons (Floating above the card) */}
+        {/* Floating Action Buttons */}
         {!isLive && activeRoute && (
           <div className="flex justify-between items-end w-full pointer-events-auto px-2">
             <div className="flex gap-2">
-              <button onClick={shareRoute} className="w-12 h-12 bg-white/80 backdrop-blur-lg text-slate-600 rounded-2xl shadow-xl border border-white/40 flex items-center justify-center active:scale-90 transition-transform">
+              <button onClick={shareRoute} className="w-12 h-12 bg-white/80 backdrop-blur-lg text-slate-600 rounded-2xl shadow-xl border border-white/40 flex items-center justify-center active:scale-95 transition-all">
                 <span className="material-symbols-rounded">share</span>
               </button>
               {activeRoute?.createdBy === auth.currentUser?.uid && (
-                <button onClick={() => deleteRoute(activeRoute.id)} className="w-12 h-12 bg-white/80 backdrop-blur-lg text-red-500 rounded-2xl shadow-xl border border-white/40 flex items-center justify-center active:scale-90 transition-transform">
+                <button onClick={() => deleteRoute(activeRoute.id)} className="w-12 h-12 bg-white/80 backdrop-blur-lg text-red-500 rounded-2xl shadow-xl border border-white/40 flex items-center justify-center active:scale-95 transition-all">
                   <span className="material-symbols-rounded">delete</span>
                 </button>
               )}
             </div>
-            <button onClick={() => router.push("/routes/create")} className="w-14 h-14 bg-blue-600 text-white rounded-2xl shadow-2xl flex items-center justify-center active:scale-90 transition-transform">
+            <button onClick={() => router.push("/routes/create")} className="w-14 h-14 bg-blue-600 text-white rounded-2xl shadow-2xl flex items-center justify-center active:scale-95 transition-all">
               <span className="material-symbols-rounded text-3xl">add</span>
             </button>
           </div>
         )}
 
-        {/* Consolidated Info Card */}
-        <div className="pointer-events-auto bg-white/85 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-2xl border border-white/40">
+        {/* Floating Info Card (The "Bottom Sheet") */}
+        <div className={`pointer-events-auto transition-all duration-500 ${isLive ? 'translate-y-2 opacity-90' : ''} bg-white/85 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-2xl border border-white/40`}>
           <div className="flex flex-col gap-1">
             <h2 className="text-xl font-black italic uppercase text-slate-900 tracking-tight leading-none">
               {activeRoute?.name || "Ready to ride?"}
@@ -224,7 +226,7 @@ function MapClientContent() {
               {activeRoute?.neighborhood || "Portland, OR"}
             </p>
             
-            {/* Dropdown nested in card to save vertical space */}
+            {/* Dropdown nested in card to keep the view clean */}
             {!isLive && filteredRoutes.length > 0 && (
               <div className="mt-4 relative">
                 <select
