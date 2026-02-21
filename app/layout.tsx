@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import "./globals.css"; // <--- IS THIS STILL THERE?
 
 // Mapping our nav items to Material Symbols Rounded names
 const navItems = [
