@@ -56,12 +56,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 className={`nav-item ${isActive ? 'active' : ''}`}
               >
                 <span 
-                  className="material-symbols-rounded"
+                  className="material-symbols-rounded !text-2xl"
                   style={{ fontVariationSettings: `'FILL' ${isActive ? 1 : 0}` }}
                 >
                   {item.icon}
                 </span>
-                <span>{item.label}</span>
+                <span className="text-[10px] tracking-tight mt-1">{item.label}</span>
               </Link>
             );
           })}
