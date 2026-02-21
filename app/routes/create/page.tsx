@@ -3,9 +3,9 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 // Use the explicit file path
-import { db } from "@/src/lib/firebase/client"; 
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { auth, db } from "@/src/lib/firebase/client";
 
 // Dynamically load MapControl for previewing
 const MapPreview = dynamic(() => import("@/src/components/MapControl"), { ssr: false });
@@ -40,28 +40,40 @@ export default function CreateRoutePage() {
   };
 
   const saveToFirestore = async () => {
-    if (!routeName || coords.length === 0) return alert("Missing data");
-    
+    // 1. Get the current user directly from the auth instance
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("You must be logged in to publish a route.");
+      return;
+    }
+
     setLoading(true);
     try {
-      // Convert [lat, lng] arrays to { lat, lng } objects
-      const firestoreReadyCoords = coords.map(c => ({
-        lat: c[0],
-        lng: c[1]
+      const firestoreReadyCoords = coords.map(c => ({ 
+        lat: c[0], 
+        lng: c[1] 
       }));
 
+      // 2. Add the document with your schema fields
       await addDoc(collection(db, "routes"), {
-        name: routeName,
-        coordinates: firestoreReadyCoords, // Now an array of objects
-        status: "active",
-        createdAt: serverTimestamp(),
+        name: routeName || "Unnamed Route",
+        coordinates: firestoreReadyCoords,
+        active: true,
+        city: "Portland",
+        schoolName: "James John Elementary", // Or your state variable
+        startLocationLabel: "Meet at George Park",
+        startTimeLocal: "08:00",
+        weekday: 2,
+        createdBy: user.uid, // This is the magic key for your Delete rule
+        planner: user.displayName || "Revolution",
+        updatedAt: serverTimestamp(),
       });
 
       router.push("/map");
     } catch (error: any) {
-      console.error("Error saving:", error);
+      console.error("Save Error:", error);
       alert(`Save Failed: ${error.message}`);
-    } finally {
       setLoading(false);
     }
   };
