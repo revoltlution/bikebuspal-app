@@ -16,37 +16,37 @@ function ChangeView({ center }: { center: [number, number] }) {
 
 const routesData = {
   jje_george_park: [
-    [45.5946, -122.7565], // Burr & Hudson (Start)
-    [45.5925, -122.7565], // Burr & Seneca
-    [45.5925, -122.7551], // Seneca & Charleston
-    [45.5898, -122.7551], // Charleston (JJE / Library)
+    [45.5946, -122.7554], // N Burr Ave & N Hudson St (Start)
+    [45.5925, -122.7554], // N Burr Ave & N Seneca St
+    [45.5925, -122.7538], // N Seneca St & N Charleston Ave
+    [45.5898, -122.7538], // N Charleston Ave (School/Library End)
   ] as [number, number][],
 
   jje_jersey: [
-    [45.5975, -122.7565], // Burr & Willamette (Start)
-    [45.5958, -122.7565], // Burr & Jersey
-    [45.5958, -122.7551], // Jersey & Charleston
-    [45.5898, -122.7551], // Charleston (End)
+    [45.5975, -122.7554], // N Burr Ave & N Willamette Blvd (Start)
+    [45.5958, -122.7554], // N Burr Ave & N Jersey St
+    [45.5958, -122.7538], // N Jersey St & N Charleston Ave
+    [45.5898, -122.7538], // N Charleston Ave (End)
   ] as [number, number][],
 
   jje_columbia_collective: [
-    [45.5941, -122.7420], // Taft Ave (East of Columbia Way)
-    [45.5930, -122.7420], // Taft & Cecelia
-    [45.5930, -122.7455], // Cecelia & Macrum
-    [45.5910, -122.7455], // Macrum & Fessenden
-    [45.5895, -122.7455], // Macrum & Seneca
-    [45.5895, -122.7485], // Seneca & Minerva
-    [45.5885, -122.7485], // Minerva & Gilbert
-    [45.5875, -122.7485], // Gilbert & Central
-    [45.5875, -122.7565], // Central & Burr
-    [45.5946, -122.7565], // Burr & Hudson (Joins George Park)
+    [45.5942, -122.7410], // N Taft Ave (East of Columbia Way)
+    [45.5931, -122.7410], // N Taft Ave & N Cecelia St
+    [45.5931, -122.7445], // N Cecelia St & N Macrum Ave
+    [45.5912, -122.7445], // N Macrum Ave & N Fessenden St
+    [45.5895, -122.7445], // N Macrum Ave & N Seneca St
+    [45.5895, -122.7475], // N Seneca St & N Minerva Ave
+    [45.5885, -122.7475], // N Minerva Ave & N Gilbert Ave
+    [45.5875, -122.7475], // N Gilbert Ave & N Central St
+    [45.5875, -122.7554], // N Central St & N Burr Ave
+    [45.5946, -122.7554], // N Burr Ave & N Hudson St (Joins George Park)
   ] as [number, number][],
 
   alameda: [
-    [45.541, -122.635],
-    [45.541, -122.630],
-    [45.545, -122.630],
-    [45.548, -122.625],
+    [45.5482, -122.6305], // NE 24th & Fremont (Example start)
+    [45.5482, -122.6255], 
+    [45.5415, -122.6255],
+    [45.5415, -122.6355],
   ] as [number, number][]
 };
 
