@@ -82,11 +82,32 @@ export default function DiscoverPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-slate-400">
-                <span className="material-symbols-rounded !text-sm">location_on</span>
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  {event.routeInfo.neighborhood || "Portland"}
-                </span>
+              {/* Inside your Route Card mapping */}
+              <div className="p-5">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-black italic uppercase text-lg leading-tight">{route.name}</h3>
+                  {/* MODE BADGE */}
+                  <span className="bg-blue-600 text-white text-[8px] font-black uppercase px-2 py-1 rounded-md">
+                    {route.preferredMode || 'Bike Bus'}
+                  </span>
+                </div>
+
+                {/* DIFFICULTY & NEIGHBORHOOD */}
+                <div className="flex gap-2 mt-2">
+                  <span className={`text-[9px] font-black uppercase ${
+                    route.difficulty === 'hard' ? 'text-red-500' : 'text-emerald-500'
+                  }`}>
+                    {route.difficulty || 'Easy'}
+                  </span>
+                  <span className="text-[9px] font-black uppercase text-slate-400">•</span>
+                  <span className="text-[9px] font-black uppercase text-slate-400">
+                    {route.neighborhood || 'Portland'}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-500 mt-3 line-clamp-2 leading-relaxed">
+                  {route.description || "No description provided."}
+                </p>
               </div>
 
               <div className="pt-2 flex items-center justify-between border-t border-slate-50 mt-2">

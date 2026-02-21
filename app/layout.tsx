@@ -18,11 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const isMapPage = pathname.startsWith("/map");
 
   const getPageTitle = () => {
-    // 1. Check for explicit Action Pages first
-    if (pathname.includes('/routes/create')) return "Create Path";
-    if (pathname.includes('/routes/edit')) return "Edit Path";
-    if (pathname.includes('/events/create')) return "Schedule Ride";
-    if (pathname.includes('/groups/create')) return "New Community";
+    // Inside your layout getPageTitle function
+    if (pathname === "/toolbox") return "Toolbox";
+    if (pathname === "/toolbox/routes") return "My Routes";
+    if (pathname === "/toolbox/groups") return "My Groups";
+    if (pathname.includes("/routes/create")) return "Create Path";
     
     // 2. Otherwise, fall back to your nav items or branding
     const current = navItems.find(item => pathname.startsWith(item.href));
@@ -41,14 +41,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {!isMapPage && (
           /* Global Header in app/layout.tsx */
         <header className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-md z-[100] px-6 flex items-center justify-between border-b border-slate-100">
-          <h1 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">
-            {getPageTitle()}
-          </h1>
-
-          <Link href="/settings/profile" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center transition-transform active:scale-90">
-            <span className="material-symbols-rounded text-slate-400">person</span>
-          </Link>
-        </header>
+        <h1 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">
+          {getPageTitle()}
+        </h1>
+        <Link href="/settings/profile" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
+          <span className="material-symbols-rounded text-slate-400">person</span>
+        </Link>
+      </header>
         )}
 
         {/* 4. MAIN: Fill the remaining space. relative is key for the absolute map inside */}

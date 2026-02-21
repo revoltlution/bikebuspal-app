@@ -1,103 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { auth } from "@/src/lib/firebase/client";
 
 export default function ToolboxPage() {
+  const tools = [
+    {
+      title: "My Routes",
+      desc: "Manage paths and GPX files",
+      href: "/toolbox/routes",
+      icon: "route",
+      color: "text-blue-600"
+    },
+    {
+      title: "My Groups",
+      desc: "Communities and neighborhoods",
+      href: "/toolbox/groups",
+      icon: "group",
+      color: "text-emerald-600"
+    }
+  ];
+
   return (
-    /* fixed inset-0 + overflow-y-scroll is the 'failsafe' for mobile scrolling */
-    <div className="fixed inset-0 overflow-y-scroll px-4 pt-8 pb-32 animate-in fade-in duration-700 bg-slate-50">
-      
-      <header className="px-2 mb-8">
-        <h2 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900">
-          My <br/>Toolbox
-        </h2>
-      </header>
-      
-      <div className="flex flex-col gap-8">
+    <div className="fixed inset-0 overflow-y-scroll bg-slate-50">
+      <div className="max-w-2xl mx-auto px-4 pt-24 pb-32 flex flex-col gap-6">
         
-        {/* SECTION: BUILD */}
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 px-2 mb-1">
-            <span className="material-symbols-rounded text-slate-500 !text-lg">construct</span>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Infrastructure</h3>
-          </div>
-
-          <Link href="/routes/create" className="group flex items-center justify-between p-5 bg-white rounded-3xl border border-slate-200 shadow-sm active:scale-[0.98] transition-all">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <span className="material-symbols-rounded">add_road</span>
-              </div>
-              <div>
-                <p className="font-black italic uppercase text-slate-900 leading-none">New Route</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Upload GPX or Draw</p>
-              </div>
+        {/* BIG PRIMARY ACTION: SCHEDULE */}
+        <Link href="/events/create" className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group active:scale-[0.98] transition-all">
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-600 rounded-full blur-[80px] opacity-40" />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Next Mission</p>
+              <h2 className="text-3xl font-black italic uppercase leading-none tracking-tighter">Schedule <br/>a Ride</h2>
             </div>
-            <span className="material-symbols-rounded text-slate-300">chevron_right</span>
-          </Link>
-
-          <Link href="/groups/create" className="group flex items-center justify-between p-5 bg-white rounded-3xl border border-slate-200 shadow-sm active:scale-[0.98] transition-all">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                <span className="material-symbols-rounded">group_add</span>
-              </div>
-              <div>
-                <p className="font-black italic uppercase text-slate-900 leading-none">New Group</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Found a community</p>
-              </div>
-            </div>
-            <span className="material-symbols-rounded text-slate-300">chevron_right</span>
-          </Link>
-
-          <Link href="/events/create" className="group flex items-center justify-between p-5 bg-white rounded-3xl border border-slate-200 shadow-sm active:scale-[0.98] transition-all">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                <span className="material-symbols-rounded">calendar_add_on</span>
-              </div>
-              <div>
-                <p className="font-black italic uppercase text-slate-900 leading-none">Schedule a Ride</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Create a one-time or recurring event</p>
-              </div>
-            </div>
-            <span className="material-symbols-rounded text-slate-300">chevron_right</span>
-          </Link>
-        </section>
-
-        {/* SECTION: MANAGEMENT */}
-        <section>
-          <div className="flex items-center gap-2 px-2 mb-4">
-            <span className="material-symbols-rounded text-slate-500 !text-lg">inventory_2</span>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">The Workshop</h3>
+            <span className="material-symbols-rounded text-5xl text-blue-500 group-hover:rotate-12 transition-transform">calendar_add_on</span>
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <Link href="/toolbox/routes" className="p-6 bg-slate-100 rounded-[2rem] flex flex-col gap-4 active:scale-95 transition-all">
-              <span className="material-symbols-rounded text-slate-600">directions_bike</span>
-              <p className="font-black italic uppercase text-slate-900 text-sm leading-none">My <br/>Routes</p>
-            </Link>
-            <Link href="/toolbox/groups" className="p-6 bg-slate-100 rounded-[2rem] flex flex-col gap-4 active:scale-95 transition-all">
-              <span className="material-symbols-rounded text-slate-600">hub</span>
-              <p className="font-black italic uppercase text-slate-900 text-sm leading-none">My <br/>Groups</p>
-            </Link>
-          </div>
-        </section>
+        </Link>
 
-        {/* SECTION: SYSTEM */}
-        <section className="mt-4 pt-4 border-t border-slate-200">
-          <div className="flex flex-col">
-            <Link href="/settings/profile" className="flex items-center gap-4 p-4 text-slate-400 hover:text-slate-900 transition-all group">
-              <span className="material-symbols-rounded">settings</span>
-              <span className="text-[10px] font-black uppercase tracking-widest">Account Settings</span>
+        {/* SUB-TOOLS GRID */}
+        <div className="grid grid-cols-1 gap-4">
+          {tools.map((tool) => (
+            <Link key={tool.href} href={tool.href} className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm flex items-center justify-between group active:scale-[0.98] transition-all">
+              <div className="flex items-center gap-5">
+                <div className={`w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center ${tool.color}`}>
+                  <span className="material-symbols-rounded text-2xl">{tool.icon}</span>
+                </div>
+                <div>
+                  <h3 className="font-black uppercase italic text-slate-900 leading-none">{tool.title}</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-1">{tool.desc}</p>
+                </div>
+              </div>
+              <span className="material-symbols-rounded text-slate-300 group-hover:translate-x-1 transition-transform">chevron_right</span>
             </Link>
-            <button 
-              onClick={() => auth.signOut()}
-              className="flex items-center gap-4 p-4 text-red-500/60 hover:text-red-600 transition-all"
-            >
-              <span className="material-symbols-rounded">logout</span>
-              <span className="text-[10px] font-black uppercase tracking-widest">Shutdown Session</span>
-            </button>
-          </div>
-        </section>
+          ))}
+        </div>
+
       </div>
     </div>
   );
