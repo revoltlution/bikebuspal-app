@@ -40,6 +40,19 @@ export default function ToolboxPage() {
             </div>
             <span className="material-symbols-rounded text-slate-300">chevron_right</span>
           </Link>
+
+          <Link href="/events/create" className="group flex items-center justify-between p-5 bg-white rounded-3xl border border-slate-200 shadow-sm active:scale-[0.98] transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+              <span className="material-symbols-rounded">calendar_add_on</span>
+            </div>
+            <div>
+              <p className="font-black italic uppercase text-slate-900 leading-none">Schedule a Ride</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Create a one-time or recurring event</p>
+            </div>
+          </div>
+          <span className="material-symbols-rounded text-slate-300">chevron_right</span>
+        </Link>
         </div>
       </section>
 
