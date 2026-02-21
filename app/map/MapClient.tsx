@@ -1,10 +1,22 @@
-"use client";
+ "use client";
 
 import { useEffect, useState, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
+
+// Firebase Imports
 import { db, auth } from "@/src/lib/firebase/client"; 
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { 
+  collection, 
+  getDocs, 
+  deleteDoc, 
+  doc, 
+  getDoc,    // Added for profile fetch
+  updateDoc  // Added for saving preferences
+} from "firebase/firestore";
+
+// Your New Profile Helper
+import { syncUserProfile } from "@/src/lib/firebase/profile";
 
 interface MapPoint { lat: number; lng: number; }
 interface MapControlProps { customData: MapPoint[]; }
@@ -85,39 +97,52 @@ function MapClientContent() {
     }
   };
 
+  // Inside MapClientContent component
+  const [profile, setProfile] = useState<any>(null);
+
   useEffect(() => {
-    const loadRoutes = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "routes"));
-        const firestoreRoutes = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        
-        setRoutes(firestoreRoutes);
+    const init = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
 
-        // Read both params from the URL
-        const urlRouteId = searchParams.get("route");
-        const urlLive = searchParams.get("live") === "true";
+      // 1. Parallel Load: Profile and Routes
+      const [userProfile, routesSnap] = await Promise.all([
+        syncUserProfile(user), 
+        getDocs(collection(db, "routes"))
+      ]);
 
-        // Set Live status
-        setIsLive(urlLive);
+      const firestoreRoutes = routesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setRoutes(firestoreRoutes);
+      setProfile(userProfile);
 
-        // Set Route selection
-        if (urlRouteId && firestoreRoutes.some(r => r.id === urlRouteId)) {
-          setSelectedRouteId(urlRouteId);
-        } else if (firestoreRoutes.length > 0) {
-          setSelectedRouteId(firestoreRoutes[0].id);
-        }
-      } catch (err) {
-        console.error("Initialization failed:", err);
-      } finally {
-        setLoading(false);
-      }
+      // 2. Set UI state based on Profile Preferences
+      const savedId = userProfile?.preferences?.lastRouteId;
+      const initialId = firestoreRoutes.some(r => r.id === savedId) 
+        ? savedId 
+        : firestoreRoutes[0]?.id;
+
+      setSelectedRouteId(initialId);
+      setIsLive(userProfile?.preferences?.isLive || false);
+      setLoading(false);
     };
-    loadRoutes();
-  }, []); // Only run once on mount
 
+    init();
+  }, []);
+
+  // 4. The Sync-and-Save Handler
+  const updatePreference = async (routeId: string, live: boolean) => {
+    setSelectedRouteId(routeId);
+    setIsLive(live);
+
+    if (auth.currentUser) {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      // Use dot-notation to avoid overwriting the whole 'preferences' object
+      await updateDoc(userRef, {
+        "preferences.lastRouteId": routeId,
+        "preferences.isLive": live
+      });
+    }
+  };
   const activeRoute = routes.find(r => r.id === selectedRouteId);
 
   return (
@@ -128,14 +153,14 @@ function MapClientContent() {
         <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2">
           <div className="flex bg-white/95 backdrop-blur-md p-1 rounded-2xl shadow-xl border border-white/20">
             <button 
-              onClick={() => toggleLive(false)} 
-              className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all ${!isLive ? 'bg-blue-600 text-white' : 'text-slate-500'}`}
+              onClick={() => updatePreference(selectedRouteId, false)} 
+              className={`flex-1 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${!isLive ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500'}`}
             >
               BROWSE
             </button>
             <button 
-              onClick={() => toggleLive(true)} 
-              className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all ${isLive ? 'bg-red-600 text-white' : 'text-slate-500'}`}
+              onClick={() => updatePreference(selectedRouteId, true)} 
+              className={`flex-1 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${isLive ? 'bg-red-600 text-white shadow-md' : 'text-slate-500'}`}
             >
               LIVE RIDE
             </button>
@@ -144,37 +169,33 @@ function MapClientContent() {
           {!isLive && routes.length > 0 && (
             <div className="flex flex-col gap-2">
               <div className="relative">
-                <select 
+                 <select 
                   value={selectedRouteId}
-                  onChange={(e) => handleRouteChange(e.target.value)}
+                  onChange={(e) => updatePreference(e.target.value, isLive)}
                   className="w-full bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/20 text-sm font-bold text-slate-800 appearance-none focus:outline-none"
                 >
-                  {routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  {routes.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
                 </select>
                 <span className="material-symbols-rounded absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">unfold_more</span>
               </div>
 
             {/* Container for Icon Buttons */}
             <div className="flex gap-2 mt-1">
-              {/* Share Button (Always visible if a route is selected) */}
-              {activeRoute && (
-                <button 
-                  onClick={shareRoute}
-                  title="Share Google Maps Link"
-                  className="flex-1 flex items-center justify-center bg-white/90 backdrop-blur-md text-slate-700 py-2 rounded-xl border border-slate-200 shadow-sm active:scale-95 transition-all"
-                >
-                  <span className="material-symbols-rounded text-xl">share</span>
-                </button>
-              )}
+              <button 
+                onClick={shareRoute}
+                className="flex-1 flex items-center justify-center bg-white/90 backdrop-blur-md text-slate-700 py-2 rounded-xl border border-slate-200 shadow-sm active:scale-95 transition-all"
+              >
+                <span className="material-symbols-rounded text-lg text-slate-500">share</span>
+              </button>
 
-              {/* Delete Button (Owner Only) */}
               {activeRoute?.createdBy === auth.currentUser?.uid && (
                 <button 
                   onClick={() => deleteRoute(activeRoute.id)}
-                  title="Delete Route"
                   className="flex-1 flex items-center justify-center bg-red-500/10 backdrop-blur-md text-red-600 py-2 rounded-xl border border-red-200 shadow-sm active:scale-95 transition-all"
                 >
-                  <span className="material-symbols-rounded text-xl">delete</span>
+                  <span className="material-symbols-rounded text-lg">delete</span>
                 </button>
               )}
             </div>
