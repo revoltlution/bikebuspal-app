@@ -30,17 +30,22 @@ interface MapControlProps {
 }
 
 export default function MapControl({ customData }: MapControlProps) {
-  // Guard against empty data
+  // Check if data exists AND has at least one point
   if (!customData || customData.length === 0) {
     return (
-      <div className="h-full w-full bg-slate-50 flex items-center justify-center text-slate-400 font-bold italic">
-        Waiting for route data...
+      <div className="h-full w-full bg-slate-100 flex items-center justify-center rounded-3xl">
+        <p className="text-slate-400 italic">No route data available...</p>
       </div>
     );
   }
 
-  // Convert Firestore objects back to Leaflet arrays [lat, lng]
-  const positions = customData.map(p => [p.lat, p.lng] as [number, number]);
+  // Ensure the points have lat and lng before mapping
+  const positions = customData
+    .filter(p => p && typeof p.lat === 'number')
+    .map(p => [p.lat, p.lng] as [number, number]);
+
+  if (positions.length === 0) return null;
+
   const center = positions[0];
 
   return (
