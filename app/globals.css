@@ -109,3 +109,16 @@ header {
 .nav-item:active {
   transform: scale(0.92);
 }
+
+/* map page specific tweaks */
+.btn-emergency {
+  background: #fef2f2 !important;
+  border: 1px solid #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+/* Ensure the map container feels like a native app viewport */
+.map-viewport {
+  height: calc(100vh - 250px);
+  width: 100%;
+}
