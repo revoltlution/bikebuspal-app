@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { adminDb } from "@/lib/firebase/adminDb";
-import { getUserFromSession } from "@/lib/auth/getUserFromSession";
-import { RideRoleButtons } from "@/components/RideRoleButtons";
-import { StarRouteButton } from "@/components/StarRouteButton";
+import { adminDb } from "@/src/lib/firebase/adminDb";
+import { getUserFromSession } from "@/src/lib/auth/getUserFromSession";
+import { RideRoleButtons } from "@/src/components/RideRoleButtons";
+import { StarRouteButton } from "@/src/components/StarRouteButton";
 
 type RouteDoc = {
   name: string;

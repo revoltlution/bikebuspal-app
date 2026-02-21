@@ -1,6 +1,6 @@
 "use client";
 
-import { BecomeLeaderButton } from "@/components/BecomeLeaderButton";
+import { BecomeLeaderButton } from "@/src/components/BecomeLeaderButton";
 import Link from "next/link";
 
 interface TodayHeroProps {

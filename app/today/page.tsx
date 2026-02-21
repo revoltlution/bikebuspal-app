@@ -3,11 +3,11 @@ export const revalidate = 0;
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { adminDb } from "@/lib/firebase/adminDb";
-import { getUserFromSession } from "@/lib/auth/getUserFromSession";
-import { LogoutButton } from "@/components/LogoutButton";
-import { BecomeLeaderButton } from "@/components/BecomeLeaderButton";
-import TodayHero from "../../src/components/TodayHero";
+import { adminDb } from "@/src/lib/firebase/adminDb";
+import { getUserFromSession } from "@/src/lib/auth/getUserFromSession";
+import { LogoutButton } from "@/src/components/LogoutButton";
+import { BecomeLeaderButton } from "@/src/components/BecomeLeaderButton";
+import TodayHero from "@/src/components/TodayHero";
 
 // Type definitions for the IDE
 type RouteDoc = {
