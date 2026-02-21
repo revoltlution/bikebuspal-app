@@ -5,11 +5,10 @@ import Link from "next/link";
 import "./globals.css";
 
 const navItems = [
-  { href: "/today", label: "Today", icon: "calendar_today" },
-  { href: "/routes", label: "Routes", icon: "directions_bike" },
-  { href: "/map", label: "Map", icon: "explore" },
-  { href: "/groups", label: "Groups", icon: "groups" },
-  { href: "/settings", label: "Settings", icon: "settings" },
+  { href: "/today", label: "Today", icon: "bolt" },        // Action: The Mission Control
+  { href: "/schedule", label: "Schedule", icon: "event" },  // Commitment: My favorites/plan
+  { href: "/discover", label: "Discover", icon: "search" }, // Growth: Find new stuff
+  { href: "/gear", label: "Gear", icon: "handyman" },       // Foundation: GPX/Groups/Settings
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
