@@ -1,5 +1,5 @@
 // app/map/page.tsx
-import MapClient from "@/src/components/MapClient";
+import MapClient from "./MapClient";
 
 export default function Page() {
   return (
