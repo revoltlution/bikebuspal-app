@@ -36,8 +36,16 @@ function MapClientContent() {
   // 3. Helper to update the URL and state simultaneously
   const handleRouteChange = (id: string) => {
     setSelectedRouteId(id);
-    // Updates URL to /map?route=XYZ without a full page refresh
-    router.push(`/map?route=${id}`, { scroll: false });
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("route", id);
+    router.push(`/map?${params.toString()}`, { scroll: false });
+  };
+
+  const toggleLive = (liveValue: boolean) => {
+    setIsLive(liveValue);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("live", liveValue.toString());
+    router.push(`/map?${params.toString()}`, { scroll: false });
   };
 
   const shareRoute = () => {
@@ -79,7 +87,6 @@ function MapClientContent() {
 
   useEffect(() => {
     const loadRoutes = async () => {
-      setLoading(true);
       try {
         const querySnapshot = await getDocs(collection(db, "routes"));
         const firestoreRoutes = querySnapshot.docs.map(doc => ({
@@ -89,29 +96,27 @@ function MapClientContent() {
         
         setRoutes(firestoreRoutes);
 
-        // 1. Grab the ID from the URL
+        // Read both params from the URL
         const urlRouteId = searchParams.get("route");
+        const urlLive = searchParams.get("live") === "true";
 
-        // 2. Priority Logic: 
-        // If URL ID exists and matches a real route, use it.
-        // Otherwise, fallback to the first route in the list.
+        // Set Live status
+        setIsLive(urlLive);
+
+        // Set Route selection
         if (urlRouteId && firestoreRoutes.some(r => r.id === urlRouteId)) {
           setSelectedRouteId(urlRouteId);
         } else if (firestoreRoutes.length > 0) {
           setSelectedRouteId(firestoreRoutes[0].id);
-          // Optional: Update URL to match the default selection
-          router.replace(`/map?route=${firestoreRoutes[0].id}`, { scroll: false });
         }
       } catch (err) {
-        console.error("Fetch failed:", err);
+        console.error("Initialization failed:", err);
       } finally {
         setLoading(false);
       }
     };
     loadRoutes();
-    // Adding searchParams to the dependency array ensures it re-syncs 
-    // if the user hits the back/forward buttons
-  }, [searchParams]);
+  }, []); // Only run once on mount
 
   const activeRoute = routes.find(r => r.id === selectedRouteId);
 
@@ -122,8 +127,18 @@ function MapClientContent() {
         
         <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2">
           <div className="flex bg-white/95 backdrop-blur-md p-1 rounded-2xl shadow-xl border border-white/20">
-            <button onClick={() => setIsLive(false)} className={`flex-1 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${!isLive ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500'}`}>BROWSE</button>
-            <button onClick={() => setIsLive(true)} className={`flex-1 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${isLive ? 'bg-red-600 text-white shadow-md' : 'text-slate-500'}`}>LIVE RIDE</button>
+            <button 
+              onClick={() => toggleLive(false)} 
+              className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all ${!isLive ? 'bg-blue-600 text-white' : 'text-slate-500'}`}
+            >
+              BROWSE
+            </button>
+            <button 
+              onClick={() => toggleLive(true)} 
+              className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all ${isLive ? 'bg-red-600 text-white' : 'text-slate-500'}`}
+            >
+              LIVE RIDE
+            </button>
           </div>
 
           {!isLive && routes.length > 0 && (
