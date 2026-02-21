@@ -6,12 +6,17 @@ import { useRouter } from "next/navigation";
 import { db } from "@/src/lib/firebase/client";
 import { collection, getDocs } from "firebase/firestore";
 
-// Define props for the dynamic MapControl
-interface MapControlProps {
-  customData: [number, number][];
+// Define the point shape to match Firestore/MapControl
+interface MapPoint {
+  lat: number;
+  lng: number;
 }
 
-const MapControl = dynamic<MapControlProps>(() => import("../../src/components/MapControl"), { 
+interface MapControlProps {
+  customData: MapPoint[];
+}
+
+const MapControl = dynamic<MapControlProps>(() => import("@/src/components/MapControl"), { 
   ssr: false,
   loading: () => <div className="h-full bg-slate-100 animate-pulse flex items-center justify-center">Loading...</div>
 });

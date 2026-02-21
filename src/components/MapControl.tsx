@@ -20,10 +20,13 @@ const icon = L.icon({
   iconAnchor: [12, 41],
 });
 
+interface MapPoint {
+  lat: number;
+  lng: number;
+}
+
 interface MapControlProps {
-  // Make activeRoute optional so the Create page doesn't complain
-  activeRoute?: string; 
-  customData: [number, number][];
+  customData: MapPoint[]; 
 }
 
 export default function MapControl({ customData }: MapControlProps) {
@@ -36,18 +39,20 @@ export default function MapControl({ customData }: MapControlProps) {
     );
   }
 
-  const center = customData[0];
+  // Convert Firestore objects back to Leaflet arrays [lat, lng]
+  const positions = customData.map(p => [p.lat, p.lng] as [number, number]);
+  const center = positions[0];
 
   return (
     <MapContainer center={center} zoom={15} className="h-full w-full">
       <ChangeView center={center} />
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <Polyline 
-        positions={customData} 
+        positions={positions} 
         pathOptions={{ color: '#00b7ff', weight: 8, opacity: 0.8, lineJoin: 'round', lineCap: 'round' }} 
       />
-      <Marker position={customData[0]} icon={icon} />
-      <Marker position={customData[customData.length - 1]} icon={icon} />
+      <Marker position={positions[0]} icon={icon} />
+      <Marker position={positions[positions.length - 1]} icon={icon} />
     </MapContainer>
   );
 }

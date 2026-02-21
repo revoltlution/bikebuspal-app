@@ -30,34 +30,37 @@ export default function CreateRoutePage() {
         parseFloat(pt.getAttribute("lat") || "0"),
         parseFloat(pt.getAttribute("lon") || "0"),
       ] as [number, number])
-      .filter((_, i) => i % 5 === 0); // Keep it lean
+      // Filter out identical consecutive points to keep the array clean
+      .filter((point, i, arr) => {
+        if (i === 0) return true;
+        return point[0] !== arr[i - 1][0] || point[1] !== arr[i - 1][1];
+      });
 
     setCoords(parsedCoords);
   };
 
   const saveToFirestore = async () => {
-    if (!routeName || coords.length === 0) {
-      alert("Please enter a name and upload a GPX file.");
-      return;
-    }
+    if (!routeName || coords.length === 0) return alert("Missing data");
     
     setLoading(true);
-    console.log("Attempting to save to Firestore...");
-
     try {
-      const docRef = await addDoc(collection(db, "routes"), {
+      // Convert [lat, lng] arrays to { lat, lng } objects
+      const firestoreReadyCoords = coords.map(c => ({
+        lat: c[0],
+        lng: c[1]
+      }));
+
+      await addDoc(collection(db, "routes"), {
         name: routeName,
-        coordinates: coords,
+        coordinates: firestoreReadyCoords, // Now an array of objects
         status: "active",
         createdAt: serverTimestamp(),
       });
-      
-      console.log("Document written with ID: ", docRef.id);
-      alert("Route Published Successfully!"); // Add this for feedback
+
       router.push("/map");
     } catch (error: any) {
-      console.error("FULL ERROR:", error);
-      alert(`Save Failed: ${error.message}`); // This will tell us if it's a permission issue
+      console.error("Error saving:", error);
+      alert(`Save Failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -82,15 +85,13 @@ export default function CreateRoutePage() {
         <input type="file" accept=".gpx" onChange={handleGpxUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-blue-700" />
       </div>
 
-      {coords.length > 0 && (
-        <div className="h-64 w-full rounded-3xl overflow-hidden border border-slate-200 shadow-inner">
-            {/* Adding a key based on coords length or a timestamp forces a refresh */}
+        {coords.length > 0 && (
+          <div className="h-64 w-full rounded-3xl overflow-hidden border border-slate-200 shadow-inner">
             <MapPreview 
-            key={`preview-${coords.length}`} 
-            activeRoute="preview" 
-            customData={coords} 
+              key={`preview-${coords.length}`} 
+              customData={coords.map(c => ({ lat: c[0], lng: c[1] }))} 
             />
-        </div>
+          </div>
         )}
 
       <button 
