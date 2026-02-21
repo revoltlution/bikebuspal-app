@@ -108,7 +108,7 @@ export default async function RouteDetailPage({
                   <div style={{ textAlign: "right" }}>
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
                         <StarRouteButton routeId={r.id} starred={starredRouteIds.has(r.id)} />
-                        <Link className="link" href={`/routes/${r.id}`}>View →</Link>
+                        <Link className="link" href={`/routes/${r.id}`}>View Scheduled Rides →</Link>
                         </div>
                     <div className="badge">{r.status}</div>
                   </div>
