@@ -18,6 +18,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const isMapPage = pathname.startsWith("/map");
 
   const getPageTitle = () => {
+    // 1. Check for explicit Action Pages first
+    if (pathname.includes('/routes/create')) return "Create Path";
+    if (pathname.includes('/routes/edit')) return "Edit Path";
+    if (pathname.includes('/events/create')) return "Schedule Ride";
+    if (pathname.includes('/groups/create')) return "New Community";
+    
+    // 2. Otherwise, fall back to your nav items or branding
     const current = navItems.find(item => pathname.startsWith(item.href));
     return current ? current.label : "Bike Bus Pal";
   };
