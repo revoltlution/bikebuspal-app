@@ -26,8 +26,16 @@ export default function CreateEventPage() {
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 1. Get the user and check for existence early
     const user = auth.currentUser;
-    if (!selectedRouteId || !eventDate || !user) return;
+    if (!user) {
+      alert("You must be logged in to create an event.");
+      return;
+    }
+
+    // 2. Find the selected route to get the name for denormalization
+    const selectedRoute = routes.find(r => r.id === selectedRouteId);
 
     setLoading(true);
     try {
@@ -35,14 +43,13 @@ export default function CreateEventPage() {
 
       await addDoc(collection(db, "events"), {
         routeId: selectedRouteId,
+        // Fix for the "NO ACTIVE" text: ensuring the name is saved
+        routeName: selectedRoute?.name || "New Ride", 
         dateTime: Timestamp.fromDate(startDateTime),
-        leaderId: user.uid,
-        riders: [user.uid], // Creator is the first rider
+        riders: [user.uid], // Use the 'user' constant here
         status: "scheduled",
-        createdAt: Timestamp.now(),
-        // Adding route name here as a 'denormalized' field 
-        // makes the Today/Schedule queries much faster later
-        routeName: routes.find(r => r.id === selectedRouteId)?.name || "New Ride"
+        leaderId: user.uid,   // Use the 'user' constant here
+        createdAt: Timestamp.now()
       });
 
       setIsSuccess(true);
