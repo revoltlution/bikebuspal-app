@@ -36,19 +36,28 @@ export default function CreateRoutePage() {
   };
 
   const saveToFirestore = async () => {
-    if (!routeName || coords.length === 0) return alert("Missing name or GPX data");
+    if (!routeName || coords.length === 0) {
+      alert("Please enter a name and upload a GPX file.");
+      return;
+    }
     
     setLoading(true);
+    console.log("Attempting to save to Firestore...");
+
     try {
-      await addDoc(collection(db, "routes"), {
+      const docRef = await addDoc(collection(db, "routes"), {
         name: routeName,
         coordinates: coords,
         status: "active",
         createdAt: serverTimestamp(),
       });
+      
+      console.log("Document written with ID: ", docRef.id);
+      alert("Route Published Successfully!"); // Add this for feedback
       router.push("/map");
-    } catch (error) {
-      console.error("Error saving route:", error);
+    } catch (error: any) {
+      console.error("FULL ERROR:", error);
+      alert(`Save Failed: ${error.message}`); // This will tell us if it's a permission issue
     } finally {
       setLoading(false);
     }
