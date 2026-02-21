@@ -122,3 +122,10 @@ header {
   height: calc(100vh - 250px);
   width: 100%;
 }
+
+/* Make the Leaflet path pop */
+.leaflet-interactive {
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
