@@ -48,63 +48,64 @@ header {
   border-radius: 16px !important;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
 }
-
 .bottom-nav {
   position: fixed !important;
-  bottom: 20px !important;
+  bottom: 24px !important; /* Slightly more air from the bottom */
   left: 50% !important;
   transform: translateX(-50%) !important;
-  width: 90% !important;
-  max-width: 400px !important;
-  height: 65px !important;
-  background: white !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 20px !important;
+  width: 92% !important;
+  max-width: 420px !important;
+  height: 72px !important; /* A bit taller for better tap targets */
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.05) !important;
+  border-radius: 24px !important;
   display: flex !important;
   justify-content: space-around !important;
   align-items: center !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.12) !important;
   z-index: 9999 !important;
+  padding: 0 12px !important;
 }
 
-.nav-icon {
-  font-size: 24px;
-  /* This allows the 'FILL' animation to trigger smoothly */
-  transition: font-variation-settings 0.2s ease;
+.nav-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-decoration: none !important;
+  color: #64748b !important; /* Slate 500 */
+  flex: 1 !important;
+  transition: transform 0.1s ease;
+  height: 100% !important;
+}
+
+/* The Icon 'Container' */
+.nav-item .material-symbols-rounded {
+  padding: 4px 16px !important;
+  border-radius: 16px !important;
+  transition: all 0.2s ease !important;
+  font-size: 24px !important;
+}
+
+/* Active State: The Pill */
+.nav-item.active .material-symbols-rounded {
+  background: #dbeafe !important; /* Light Blue 100 */
+  color: #1e40af !important; /* Blue 800 */
+}
+
+/* Active State: The Label */
+.nav-item.active span:last-child {
+  color: #1e40af !important;
+  font-weight: 700 !important;
 }
 
 .nav-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: 11px !important;
+  font-weight: 500;
+  margin-top: 4px !important;
 }
 
-/*  -------------------------------------------------- */
-/* The background pill for active state */
-.nav-item {
-  position: relative;
-  z-index: 1;
-}
-
-.nav-item.active::before {
-  content: "";
-  position: absolute;
-  top: 4px; /* Adjust based on your icon position */
-  width: 56px; /* Width of the highlight pill */
-  height: 32px; /* Height of the highlight pill */
-  background: rgba(37, 99, 235, 0.12); /* Subtle version of your blue */
-  border-radius: 16px;
-  z-index: -1;
-  transition: all 0.2s ease;
-}
-
-/* Make the label bolder when active */
-.nav-item.active span:last-child {
-  color: #1e40af; /* Deeper blue */
-  font-weight: 800;
-}
-
-/* Add a "tap" animation for feedback */
 .nav-item:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
 }
