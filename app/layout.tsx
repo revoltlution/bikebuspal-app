@@ -35,9 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {getPageTitle()}
           </h1>
           
-          {/* Your new Profile Icon replacement for Logout */}
-          <Link href="/settings/profile" className="text-slate-400 hover:text-blue-600 transition-colors">
-            <span className="material-symbols-rounded text-4xl">account_circle</span>
+          <Link href="/settings/profile" className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-all border border-slate-200 shadow-sm">
+            <span className="material-symbols-rounded !text-3xl">account_circle</span>
           </Link>
         </header>
 
