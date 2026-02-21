@@ -14,10 +14,11 @@ export default function DiscoverPage() {
     const fetchPublicEvents = async () => {
       try {
         // Query upcoming events
+        // In app/discover/page.tsx
         const q = query(
-          collection(db, "events"),
-          where("status", "==", "scheduled"),
-          orderBy("dateTime", "asc")
+        collection(db, "events"),
+        where("status", "==", "scheduled"),
+        orderBy("dateTime", "asc")
         );
         
         const snap = await getDocs(q);
