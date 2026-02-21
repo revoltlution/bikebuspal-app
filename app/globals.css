@@ -10,9 +10,22 @@ body {
 
 .page {
   padding: 20px;
+  padding-top: calc(20px + env(safe-area-inset-top)); /* Adds notch protection */
   max-width: 600px;
   margin: 0 auto;
-  padding-bottom: 120px; /* Space for nav */
+  padding-bottom: 120px;
+}
+
+/* Make the Browse Routes look like a high-end button */
+.btn.primary {
+  background: #2563eb !important;
+  color: white !important;
+  font-weight: 700 !important;
+  border: none !important;
+  padding: 14px !important;
+  display: block !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
 }
 
 .bottom-nav {

@@ -16,8 +16,9 @@ export default function TodayHero({ user, route, ride }: TodayHeroProps) {
         <span className="material-symbols-rounded text-5xl text-slate-400 mb-3 font-light">bedtime</span>
         <h2 className="text-xl font-bold text-slate-800 italic tracking-tight">So much empty</h2>
         <p className="text-sm text-slate-500 max-w-[220px] mt-2">No bike buses joined for today. Ready to find a new route?</p>
-        <Link href="/routes" className="btn primary mt-4 px-6">Browse Routes</Link>
+        <Link href="/routes" className="btn primary mt-4 w-full text-center">Browse Routes</Link>
       </div>
+      
     );
   }
 
