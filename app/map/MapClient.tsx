@@ -138,42 +138,45 @@ function MapClientContent() {
   const activeRoute = routes.find(r => r.id === selectedRouteId);
 
   return (
-    <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-slate-50">
+    <div className="relative h-screen w-screen overflow-hidden bg-slate-100">
       
-      {/* 1. Neighborhood Filter - Only in Browse */}
-      {!isLive && routes.length > 0 && (
-        <div className="px-4 pt-2 flex gap-2 overflow-x-auto pb-3 no-scrollbar shrink-0">
-          {neighborhoods.map((n) => (
-            <button
-              key={n}
-              onClick={() => setSelectedNeighborhood(n)}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border shrink-0 ${
-                selectedNeighborhood === n
-                  ? "bg-slate-900 text-white border-slate-900 shadow-md"
-                  : "bg-white text-slate-400 border-slate-200"
-              }`}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* 2. THE MAP ENGINE - Flex Fill */}
-      <div 
-        className={`relative transition-all duration-700 ease-in-out flex-grow ${
-          isLive 
-            ? 'm-0 rounded-none z-[2000]' 
-            : 'mx-4 mb-2 rounded-3xl border border-slate-200 shadow-lg overflow-hidden'
-        }`}
-      >
+      {/* 1. THE BACKGROUND MAP (Full Screen) */}
+      <div className="absolute inset-0 z-0">
         <MapControl customData={activeRoute?.coordinates || []} />
+      </div>
 
-        {/* FLOATING HEADER - Frosted Glass */}
-        <div className="absolute top-4 left-4 right-4 z-[2001] flex flex-col gap-2">
-          <div className={`flex p-1 rounded-2xl shadow-xl border transition-all duration-500 ${
-            isLive ? 'bg-white/70 backdrop-blur-md border-white/40' : 'bg-white/95 border-white/20'
-          }`}>
+      {/* 2. TOP FLOATING CONTROLS */}
+      <div className="absolute top- নিরাপদ-area-inset-top left-0 right-0 z-[1001] p-4 flex flex-col gap-3 pointer-events-none">
+        <div className="flex justify-between items-start w-full">
+          {/* Neighborhood Filter - Floating Pill */}
+          {!isLive && (
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pointer-events-auto max-w-[80%]">
+              {neighborhoods.map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setSelectedNeighborhood(n)}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
+                    selectedNeighborhood === n
+                      ? "bg-slate-900 text-white border-slate-900 shadow-xl"
+                      : "bg-white/80 backdrop-blur-md text-slate-500 border-white/20 shadow-lg"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          )}
+          
+          {/* Profile Icon - Floating Top Right */}
+          <div className="pointer-events-auto bg-white/80 backdrop-blur-md p-1 rounded-full shadow-lg border border-white/20">
+            {/* Your Profile/Account Icon Component */}
+            <span className="material-symbols-rounded text-slate-600 p-1">account_circle</span>
+          </div>
+        </div>
+
+        {/* Mode Toggle - Floating Glass */}
+        <div className="w-full pointer-events-auto bg-white/70 backdrop-blur-lg p-1 rounded-2xl shadow-2xl border border-white/40 max-w-md mx-auto">
+          <div className="flex gap-1">
             <button
               onClick={() => updatePreference(selectedRouteId, false)}
               className={`flex-1 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${!isLive ? "bg-blue-600 text-white shadow-md" : "text-slate-500"}`}
@@ -184,68 +187,59 @@ function MapClientContent() {
               onClick={() => updatePreference(selectedRouteId, true)}
               className={`flex-1 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${isLive ? "bg-red-600 text-white shadow-md animate-pulse" : "text-slate-500"}`}
             >
-              {isLive && <span className="inline-block w-2 h-2 rounded-full bg-white mr-2 animate-ping" />}
               LIVE RIDE
             </button>
           </div>
-
-          {/* Floating Route Selector in Browse */}
-          {!isLive && filteredRoutes.length > 0 && (
-            <div className="relative">
-              <select
-                value={selectedRouteId}
-                onChange={(e) => updatePreference(e.target.value, isLive)}
-                className="w-full bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/20 text-sm font-bold text-slate-800 appearance-none"
-              >
-                {filteredRoutes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select>
-            </div>
-          )}
         </div>
-
-        {/* LIVE MODE TOOLS (Floating HUD) */}
-        {isLive && (
-          <div className="absolute bottom-8 left-4 right-4 z-[2001] animate-in slide-in-from-bottom-10 duration-500">
-            <div className="bg-white/80 backdrop-blur-lg p-4 rounded-3xl border border-white/40 shadow-2xl flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-black text-blue-600 uppercase tracking-tighter">Current Route</p>
-                <h3 className="text-lg font-black italic uppercase leading-none">{activeRoute?.name || "Active Ride"}</h3>
-              </div>
-              <button 
-                onClick={shareRoute}
-                className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-transform"
-              >
-                <span className="material-symbols-rounded">share</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* BROWSE MODE TOOLS (Corner Icons) */}
-        {!isLive && activeRoute && (
-          <div className="absolute bottom-4 left-4 z-[1000] flex gap-2">
-            <button onClick={shareRoute} className="w-10 h-10 bg-white/90 backdrop-blur-md text-slate-600 rounded-full shadow-lg border border-white/20"><span className="material-symbols-rounded">share</span></button>
-            {activeRoute?.createdBy === auth.currentUser?.uid && (
-              <button onClick={() => deleteRoute(activeRoute.id)} className="w-10 h-10 bg-white/90 backdrop-blur-md text-red-500 rounded-full shadow-lg border border-white/20"><span className="material-symbols-rounded">delete</span></button>
-            )}
-          </div>
-        )}
-        
-        {!isLive && (
-          <button onClick={() => router.push("/routes/create")} className="absolute bottom-4 right-4 z-[1000] w-12 h-12 bg-blue-600 text-white rounded-full shadow-2xl border-4 border-white/20"><span className="material-symbols-rounded">add</span></button>
-        )}
       </div>
 
-      {/* 3. INFO DRAWER (Bottom Section) - Shinks/Disappears in Live */}
-      <div className={`transition-all duration-500 ease-in-out px-6 ${
-        isLive ? 'h-0 opacity-0' : 'h-24 opacity-100 pt-2'
-      }`}>
-        <h2 className="text-xl font-black italic uppercase text-slate-900 tracking-tight leading-none">
-          {activeRoute?.name || "No Route Selected"}
-        </h2>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-          {activeRoute?.neighborhood || "Portland, OR"}
-        </p>
+      {/* 3. BOTTOM FLOATING INTERFACE */}
+      <div className="absolute bottom-0 left-0 right-0 z-[1002] flex flex-col pointer-events-none p-4 pb-8 gap-4">
+        
+        {/* Route Tools (Floating above details) - Only in Browse */}
+        {!isLive && activeRoute && (
+          <div className="flex justify-between items-end w-full pointer-events-auto">
+            <div className="flex gap-2">
+              <button onClick={shareRoute} className="w-12 h-12 bg-white/80 backdrop-blur-lg text-slate-600 rounded-2xl shadow-xl border border-white/40 flex items-center justify-center active:scale-90">
+                <span className="material-symbols-rounded">share</span>
+              </button>
+              {activeRoute?.createdBy === auth.currentUser?.uid && (
+                <button onClick={() => deleteRoute(activeRoute.id)} className="w-12 h-12 bg-white/80 backdrop-blur-lg text-red-500 rounded-2xl shadow-xl border border-white/40 flex items-center justify-center active:scale-90">
+                  <span className="material-symbols-rounded">delete</span>
+                </button>
+              )}
+            </div>
+            <button onClick={() => router.push("/routes/create")} className="w-14 h-14 bg-blue-600 text-white rounded-2xl shadow-2xl flex items-center justify-center active:scale-90">
+              <span className="material-symbols-rounded text-3xl">add</span>
+            </button>
+          </div>
+        )}
+
+        {/* Floating Info Card */}
+        <div className="pointer-events-auto bg-white/80 backdrop-blur-xl p-5 rounded-[2.5rem] shadow-2xl border border-white/40 transition-all duration-500">
+          <div className="flex flex-col gap-1">
+            {/* If Live, maybe show a "Live" badge here */}
+            <h2 className="text-xl font-black italic uppercase text-slate-900 tracking-tight leading-none">
+              {activeRoute?.name || "Ready to ride?"}
+            </h2>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
+              {activeRoute?.neighborhood || "Select a route to begin"}
+            </p>
+            
+            {/* Dropdown nested inside the info card to save space */}
+            {!isLive && filteredRoutes.length > 0 && (
+              <div className="mt-4 relative">
+                <select
+                  value={selectedRouteId}
+                  onChange={(e) => updatePreference(e.target.value, isLive)}
+                  className="w-full bg-slate-100/50 p-3 rounded-xl text-sm font-bold text-slate-800 appearance-none focus:outline-none"
+                >
+                  {filteredRoutes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
