@@ -1,36 +1,77 @@
-// ... (Your existing imports)
-import TodayHero from "@/src/components/TodayHero";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { adminDb } from "@/lib/firebase/adminDb";
+import { getUserFromSession } from "@/lib/auth/getUserFromSession";
+import { LogoutButton } from "@/components/LogoutButton";
+import { BecomeLeaderButton } from "@/components/BecomeLeaderButton";
+import TodayHero from "../../src/components/TodayHero";
+
+// Type definitions for the IDE
+type RouteDoc = {
+  name: string;
+  schoolName: string;
+  city: string;
+  startLocationLabel: string;
+  startTimeLocal: string;
+  weekday: number;
+  active: boolean;
+  minLeadersNeeded?: number;
+};
+
+type RideInstanceDoc = {
+  routeId: string;
+  date: string;
+  startDateTime: any; 
+  leaderUserIds: string[];
+  joinedUserIds: string[];
+  status: "scheduled" | "active" | "ended" | "canceled";
+};
 
 export default async function TodayPage() {
   const user = await getUserFromSession();
   if (!user) redirect("/login");
 
-  // ... (Your existing DB logic stays exactly as is until the return statement)
+  const db = adminDb();
+  const now = new Date();
 
-  const activeRide = nextRide;
-  const activeRoute = activeRide ? routesById.get(activeRide.routeId) : null;
+  // Data Fetching Logic
+  const userSnap = await db.collection("users").doc(user.uid).get();
+  const userDoc = (userSnap.exists ? userSnap.data() : {}) as any;
+  const starred = new Set<string>(userDoc.starredRouteIds ?? []);
+
+  const routesSnap = await db.collection("routes").where("active", "==", true).get();
+  const routes = routesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as RouteDoc) }));
+  const routesById = new Map(routes.map((r) => [r.id, r]));
+
+  const myRidesSnap = await db
+    .collection("rideInstances")
+    .where("joinedUserIds", "array-contains", user.uid)
+    .where("startDateTime", ">=", now)
+    .orderBy("startDateTime", "asc")
+    .limit(10)
+    .get();
+
+  const myRides = myRidesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as RideInstanceDoc) }));
+  const nextRide = myRides.find((r) => r.status === "active") ?? myRides[0];
+  const activeRoute = nextRide ? routesById.get(nextRide.routeId) : null;
 
   return (
     <main className="page">
-      {/* Header Area */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Hello, {user.email?.split('@')[0]}</h1>
-          <p className="text-sm text-slate-500 font-medium">Portland, Oregon</p>
+          <h1 className="text-3xl font-black tracking-tight">Today</h1>
+          <p className="text-sm text-slate-500 font-medium">{user.email}</p>
         </div>
         <LogoutButton />
       </div>
 
-      {/* Modern Hero Section */}
-      <TodayHero user={user} route={activeRoute} ride={activeRide} />
+      <TodayHero user={user} route={activeRoute} ride={nextRide} />
 
-      {/* Upcoming Section */}
       <section className="mb-8">
-        <div className="flex justify-between items-end mb-4">
-          <h2 className="text-xl font-black tracking-tight">Your Schedule</h2>
-          <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">5 Days</span>
-        </div>
-
+        <h2 className="text-xl font-black tracking-tight mb-4">Your Schedule</h2>
         <div className="stack gap-3">
           {myRides.length === 0 ? (
             <div className="p-8 text-center bg-white rounded-3xl border border-slate-100 shadow-sm text-slate-400 text-sm italic">
@@ -60,23 +101,6 @@ export default async function TodayPage() {
               );
             })
           )}
-        </div>
-      </section>
-
-      {/* Starred Routes */}
-      <section>
-        <h2 className="text-xl font-black tracking-tight mb-4">Starred Routes</h2>
-        <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 no-scrollbar">
-          {[...starred].map((routeId) => {
-            const route = routesById.get(routeId);
-            return (
-              <Link key={routeId} href={`/routes/${routeId}`} className="flex-shrink-0 w-40 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                <span className="material-symbols-rounded text-amber-400 mb-2" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <p className="font-bold text-sm truncate">{route?.name}</p>
-                <p className="text-[10px] text-slate-500">{route?.schoolName}</p>
-              </Link>
-            );
-          })}
         </div>
       </section>
     </main>
