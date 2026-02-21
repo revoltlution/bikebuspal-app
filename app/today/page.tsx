@@ -1,14 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Link from "next/link"; // Added missing import
 import { auth, db } from "@/src/lib/firebase/client";
-import { collection, query, where, getDocs, orderBy, limit, Timestamp } from "firebase/firestore";
+import { doc, updateDoc, Timestamp, query, collection, where, orderBy, limit, getDocs } from "firebase/firestore";
 
 export default function TodayPage() {
+  const router = useRouter();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // 1. THE GO-LIVE HANDLER
+  const handleGoLive = async () => {
+    const user = auth.currentUser;
+    if (!user || !event) return;
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        activeRouteId: event.routeId,
+        activeEventId: event.id,
+        isLive: true,
+        lastLiveAt: Timestamp.now()
+      });
+
+      router.push(`/map?mode=live&route=${event.routeId}&event=${event.id}`);
+    } catch (err) {
+      console.error("Error activating live mission:", err);
+    }
+  };
+
+  // 2. THE DATA FETCHING LOGIC
   useEffect(() => {
     const fetchMission = async () => {
       const user = auth.currentUser;
@@ -18,7 +41,6 @@ export default function TodayPage() {
       }
 
       try {
-        // Query the NEXT event for this user
         const q = query(
           collection(db, "events"),
           where("riders", "array-contains", user.uid),
@@ -42,16 +64,14 @@ export default function TodayPage() {
     return () => unsub();
   }, []);
 
-  if (loading) return <div className="p-8 font-black italic uppercase text-slate-400">Scanning...</div>;
+  if (loading) return <div className="p-8 font-black italic uppercase text-slate-400">Scanning Horizon...</div>;
 
-  // 1. IMPROVED DATE LOGIC
-  const eventDate = event?.dateTime?.toDate();
+  // 3. DATE CALCULATION SAFETY
+  const eventDate = event?.dateTime?.toDate() || null;
   const isToday = eventDate && eventDate.toDateString() === new Date().toDateString();
 
   return (
-    /* FIX: pb-32 and overflow-y-auto solve the mobile scrolling/nav overlap issue */
-    <div className="flex flex-col gap-6 p-4 pb-32 min-h-screen overflow-y-auto animate-in fade-in duration-700">
-
+    <div className="flex flex-col gap-6 p-4 pb-32 min-h-screen overflow-y-auto animate-in fade-in duration-700 bg-slate-50">
       <section className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
         <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-600 rounded-full blur-[80px] opacity-40 pointer-events-none" />
         
@@ -60,7 +80,6 @@ export default function TodayPage() {
             {isToday ? "Active Mission" : "Upcoming Mission"}
           </p>
           
-          {/* FIX: Better fallback for the Name/Missions header */}
           <h2 className="text-3xl font-black italic uppercase leading-[0.9] tracking-tighter">
             {event?.routeName ? event.routeName.split(' - ')[0] : "No Active"} <br />
             <span className="text-blue-500 text-xl tracking-normal not-italic font-bold">
@@ -68,7 +87,7 @@ export default function TodayPage() {
             </span>
           </h2>
 
-          {event && (
+          {event && eventDate && (
             <>
               <div className="flex items-center gap-6 mt-8">
                 <div className="flex flex-col">
@@ -84,14 +103,13 @@ export default function TodayPage() {
                 </div>
               </div>
 
-              {/* FIX: Dynamic URL uses the event's routeId and eventId */}
-              <Link 
-                href={`/map?mode=live&route=${event.routeId}&event=${event.id}`}
+              <button 
+                onClick={handleGoLive}
                 className="mt-8 flex items-center justify-center gap-3 w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl text-sm font-black uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95"
               >
                 <span className="material-symbols-rounded animate-pulse">sensors</span>
                 Go Live Now
-              </Link>
+              </button>
             </>
           )}
         </div>
