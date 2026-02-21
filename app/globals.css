@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --page-max: 720px;
   --space-1: 6px;
@@ -11,20 +13,79 @@
   --radius: 12px;
   --shadow: 0 1px 2px rgba(0,0,0,0.06);
   --shadow-hover: 0 6px 16px rgba(0,0,0,0.10);
+  
+  /* New Variables for Bottom Nav */
+  --nav-height: 65px;
+  --nav-bg: rgba(255, 255, 255, 0.85);
 }
 
 /* Layout helpers */
-.page { padding: var(--space-3); max-width: var(--page-max); margin: 0 auto; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  color: #111;
+  background-color: #fcfcfc;
+  margin: 0;
+  /* Prevent body scroll bounce for native feel */
+  overscroll-behavior-y: none;
+}
+
+/* Updated Page wrapper for bottom-nav layout */
+.page { 
+  padding: var(--space-3); 
+  max-width: var(--page-max); 
+  margin: 0 auto; 
+  /* Add padding to bottom so content isn't hidden by the nav */
+  padding-bottom: calc(var(--nav-height) + var(--space-3) + env(safe-area-inset-bottom));
+}
+
+/* Bottom Navigation Styles */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start; /* Align to top to account for safe area padding */
+  padding-top: 8px;
+  z-index: 1000;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.nav-item.active {
+  color: #000; /* Or your primary brand color */
+}
+
+.nav-icon {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+
+/* Your Existing Components */
 .card { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); }
 .row { display: flex; justify-content: space-between; gap: 12px; }
 .stack { display: grid; gap: 12px; }
 .muted { color: var(--text-muted); }
 
-/* Links: modern discoverability */
-a {
-  color: inherit;
-  text-decoration: none;
-}
+a { color: inherit; text-decoration: none; }
 a.link {
   display: inline-flex;
   align-items: center;
@@ -33,12 +94,8 @@ a.link {
   border-radius: 10px;
   border: 1px solid transparent;
 }
-a.link:hover {
-  border-color: var(--border);
-  background: rgba(0,0,0,0.03);
-}
+a.link:hover { border-color: var(--border); background: rgba(0,0,0,0.03); }
 
-/* Buttons: modern discoverability */
 .btn {
   appearance: none;
   border: 1px solid var(--border);
@@ -58,45 +115,11 @@ a.link:hover {
   transform: translateY(-1px);
 }
 
-.btn:active {
-  transform: translateY(0px);
-  box-shadow: var(--shadow);
-}
+.btn.primary { background: rgba(0,0,0,0.06); border-color: var(--border-strong); font-weight: 600; }
 
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: var(--shadow);
-}
-
-.btn.primary {
-  background: rgba(0,0,0,0.06);
-  border-color: var(--border-strong);
-  font-weight: 600;
-}
-
-.card.starred {
-  border-color: rgba(0,0,0,0.25);
-  color: gold;
-  font-size: 16px;
-}
-
-/* Add this to globals.css */
-.btn.starred {
-  border-color: #FFD700;
-  background: rgba(255, 215, 0, 0.05); /* Very subtle gold tint */
-}
-
-.btn.starred span {
-  color: #FFB800; /* A slightly deeper, modern gold */
-  text-shadow: 0 0 8px rgba(255, 184, 0, 0.2);
-}
-
-.badge {
-  font-size: 12px;
-  color: var(--text-muted);
-}
+/* Stars & Badges */
+.btn.starred { border-color: #FFD700; background: rgba(255, 215, 0, 0.05); }
+.btn.starred span { color: #FFB800; text-shadow: 0 0 8px rgba(255, 184, 0, 0.2); }
 
 .pill {
   display: inline-flex;
@@ -110,53 +133,5 @@ a.link:hover {
   line-height: 1;
 }
 
-.pillJoined {
-  border-color: rgba(0,0,0,0.18);
-  background: rgba(0,0,0,0.04);
-  font-weight: 600;
-}
-
-.pillLeader {
-  border-color: rgba(0,0,0,0.26);
-  background: rgba(0,0,0,0.07);
-  font-weight: 700;
-}
-
-.pillWarn {
-  border-color: rgba(184, 134, 11, 0.35);
-  background: rgba(255, 215, 0, 0.14);
-  font-weight: 700;
-}
-
-.pillOk {
-  border-color: rgba(0,0,0,0.12);
-  background: rgba(0,0,0,0.02);
-}
-
-.pillNeutral {
-  opacity: 0.85;
-}
-
-.cardJoined {
-  border-left: 4px solid rgba(0,0,0,0.18);
-}
-
-.cardLeader {
-  border-left: 4px solid rgba(184, 134, 11, 0.55);
-}
-
-body {
-  /* Modern system font stack */
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
-  color: #111;
-  background-color: #fcfcfc;
-}
-
-/* Improve heading weights for that modern look */
-h1, h2, h3 {
-  letter-spacing: -0.02em;
-  font-weight: 700;
-}
+/* Heading weights */
+h1, h2, h3 { letter-spacing: -0.02em; font-weight: 700; }
