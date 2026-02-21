@@ -3,11 +3,23 @@
 import Link from "next/link";
 import { auth } from "@/src/lib/firebase/client";
 
+
 export default function ToolboxPage() {
   return (
-    <div className="flex flex-col gap-8 animate-in fade-in duration-500 pb-20">
+    /* min-h-screen ensures the background fills the page */
+    /* pb-32 (8rem) creates a 'buffer' so content clears the nav bar */
+    /* overflow-y-auto ensures the browser lets you swipe up/down */
+    <div className="min-h-screen pb-32 overflow-y-auto px-4 animate-in fade-in duration-700">
       
-      {/* SECTION: BUILD */}
+      <header className="pt-8 mb-8 px-2">
+        <h2 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900">
+          My <br/>Toolbox
+        </h2>
+      </header>
+
+      <div className="flex flex-col gap-4">
+        {/* Your Event Creator, Profile, etc. */}
+        {/* SECTION: BUILD */}
       <section>
         <div className="flex items-center gap-2 px-2 mb-4">
           <span className="material-symbols-rounded text-blue-600 !text-lg">construct</span>
@@ -91,6 +103,9 @@ export default function ToolboxPage() {
           </button>
         </div>
       </section>
+      </div>
+
     </div>
   );
 }
+
