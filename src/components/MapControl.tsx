@@ -16,11 +16,11 @@ function ChangeView({ center }: { center: [number, number] }) {
 
 const routesData = {
   jje_george_park: [
-    [45.5946, -122.7554], // N Burr Ave & N Hudson St (Start)
-    [45.5925, -122.7554], // N Burr Ave & N Seneca St
-    [45.5925, -122.7538], // N Seneca St & N Charleston Ave
-    [45.5898, -122.7538], // N Charleston Ave (School/Library End)
-  ] as [number, number][],
+  [45.590217, -122.740359], [45.592194, -122.739349], [45.593156, -122.740034],
+  [45.593468, -122.741440], [45.594054, -122.743788], [45.594709, -122.746600],
+  [45.595168, -122.748508], [45.593768, -122.749336], [45.591243, -122.750748],
+  [45.590026, -122.751531], [45.589934, -122.751592]
+] as [number, number][],
 
   jje_jersey: [
     [45.5975, -122.7554], // N Burr Ave & N Willamette Blvd (Start)
