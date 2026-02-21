@@ -67,21 +67,6 @@ header {
   z-index: 9999 !important;
 }
 
-.nav-item {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  text-decoration: none !important;
-  color: #64748b !important;
-  font-size: 10px !important;
-  font-weight: bold !important;
-}
-
-
-.nav-item.active {
-  color: var(--primary);
-}
-
 .nav-icon {
   font-size: 24px;
   /* This allows the 'FILL' animation to trigger smoothly */
@@ -94,15 +79,32 @@ header {
   letter-spacing: 0.02em;
 }
 
-/* Add a subtle indicator for active state if you want to go full AOSP */
+/*  -------------------------------------------------- */
+/* The background pill for active state */
+.nav-item {
+  position: relative;
+  z-index: 1;
+}
+
 .nav-item.active::before {
   content: "";
   position: absolute;
-  top: 8px;
-  width: 48px;
-  height: 32px;
-  background: var(--primary);
-  opacity: 0.1;
+  top: 4px; /* Adjust based on your icon position */
+  width: 56px; /* Width of the highlight pill */
+  height: 32px; /* Height of the highlight pill */
+  background: rgba(37, 99, 235, 0.12); /* Subtle version of your blue */
   border-radius: 16px;
   z-index: -1;
+  transition: all 0.2s ease;
+}
+
+/* Make the label bolder when active */
+.nav-item.active span:last-child {
+  color: #1e40af; /* Deeper blue */
+  font-weight: 800;
+}
+
+/* Add a "tap" animation for feedback */
+.nav-item:active {
+  transform: scale(0.9);
 }
