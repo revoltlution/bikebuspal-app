@@ -89,12 +89,18 @@ function MapClientContent() {
         
         setRoutes(firestoreRoutes);
 
-        // 4. Priority: 1. URL Parameter, 2. First Firestore route
+        // 1. Grab the ID from the URL
         const urlRouteId = searchParams.get("route");
+
+        // 2. Priority Logic: 
+        // If URL ID exists and matches a real route, use it.
+        // Otherwise, fallback to the first route in the list.
         if (urlRouteId && firestoreRoutes.some(r => r.id === urlRouteId)) {
           setSelectedRouteId(urlRouteId);
         } else if (firestoreRoutes.length > 0) {
           setSelectedRouteId(firestoreRoutes[0].id);
+          // Optional: Update URL to match the default selection
+          router.replace(`/map?route=${firestoreRoutes[0].id}`, { scroll: false });
         }
       } catch (err) {
         console.error("Fetch failed:", err);
@@ -103,7 +109,9 @@ function MapClientContent() {
       }
     };
     loadRoutes();
-  }, [searchParams]); // Re-run if params change
+    // Adding searchParams to the dependency array ensures it re-syncs 
+    // if the user hits the back/forward buttons
+  }, [searchParams]);
 
   const activeRoute = routes.find(r => r.id === selectedRouteId);
 
