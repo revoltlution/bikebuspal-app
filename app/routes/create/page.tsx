@@ -93,24 +93,29 @@ export default function CreateRoutePage() {
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-32 px-4 pt-8 max-w-2xl mx-auto overflow-y-auto min-h-screen bg-slate-50">
-      <header>
-        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 leading-none">
-          Create <br/>New Path
-        </h2>
+    /* 1. Use 'fixed inset-0' to lock the container to the screen size */
+    /* 2. 'overflow-y-scroll' ensures the touch-scroll works on iOS/Android */
+    <div className="fixed inset-0 overflow-y-scroll bg-slate-50 animate-in fade-in duration-700">
+      
+      {/* 3. This inner div handles the 'Panel' padding and width */}
+      {/* pb-40 ensures the 'Publish' button scrolls well above the navbar */}
+      <div className="max-w-2xl mx-auto px-4 pt-12 pb-40 flex flex-col gap-8">
         
-        {/* GPX.STUDIO HELPER */}
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-3">
-          <span className="material-symbols-rounded text-blue-600">map</span>
-          <p className="text-[11px] font-bold text-blue-900 leading-relaxed uppercase tracking-tight">
-            Need to draw a route? Use <a href="https://gpx.studio/" target="_blank" className="underline decoration-2 underline-offset-2">gpx.studio</a>, export the GPX, and upload it below.
-          </p>
-        </div>
-      </header>
+        <header>
+          {/* Your 'ActionHeader' would go here to replace this manual header */}
+          <h2 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 leading-none">
+            Create <br/>New Path
+          </h2>
+          
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-3">
+            <span className="material-symbols-rounded text-blue-600">map</span>
+            <p className="text-[11px] font-bold text-blue-900 leading-relaxed uppercase tracking-tight">
+              Need to draw a route? Use <a href="https://gpx.studio/" target="_blank" className="underline decoration-2 underline-offset-2">gpx.studio</a>, export the GPX, and upload it below.
+            </p>
+          </div>
+        </header>
 
-      <div className="flex flex-col gap-6">
-        {/* Route Name */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-6">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Route Name</label>
           <input 
             value={routeName}
@@ -188,6 +193,7 @@ export default function CreateRoutePage() {
           </div>
         </div>
 
+        {/* Your button is now safely inside the pb-40 zone */}
         <button 
           onClick={saveToFirestore}
           disabled={loading}
