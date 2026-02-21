@@ -51,10 +51,6 @@ export default function TodayPage() {
   return (
     /* FIX: pb-32 and overflow-y-auto solve the mobile scrolling/nav overlap issue */
     <div className="flex flex-col gap-6 p-4 pb-32 min-h-screen overflow-y-auto animate-in fade-in duration-700">
-      
-      <header className="px-2 pt-4">
-        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900">Today</h2>
-      </header>
 
       <section className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
         <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-600 rounded-full blur-[80px] opacity-40 pointer-events-none" />
