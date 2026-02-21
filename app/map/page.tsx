@@ -1,31 +1,43 @@
 "use client";
 
 import dynamic from "next/dynamic";
+// 1. Ensure useState is imported
 import { useState } from "react";
 
-// This is the "magic" for Next.js and Maps. 
-// We load the Map component only on the client side.
-const MapControl = dynamic(() => import("../../src/components/MapControl"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex flex-col items-center justify-center h-full bg-slate-100 animate-pulse">
-      <span className="material-symbols-rounded text-4xl text-slate-300">map</span>
-      <p className="text-xs font-bold text-slate-400 mt-2 tracking-widest">INITIALIZING MAP...</p>
-    </div>
-  )
-});
+// 2. Define the props for MapControl so the dynamic loader knows what to expect
+interface MapControlProps {
+  activeRoute: string;
+}
+
+const MapControl = dynamic<MapControlProps>(
+  () => import("../../src/components/MapControl"), 
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full bg-slate-100 animate-pulse">
+        <p className="text-xs font-black text-slate-400">LOADING MAP...</p>
+      </div>
+    )
+  }
+);
 
 export default function MapPage() {
   const [isLive, setIsLive] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState("jje_george_park");
+
+  const routes = [
+    { id: "jje_george_park", name: "George Park Route", neighborhood: "St. Johns" },
+    { id: "jje_jersey", name: "Jersey St Route", neighborhood: "St. Johns" },
+    { id: "jje_columbia_collective", name: "Columbia Collective", neighborhood: "St. Johns" },
+    { id: "alameda", name: "Alameda Route", neighborhood: "NE Portland" }
+  ];
 
   return (
     <div className="flex flex-col h-full">
-      {/* Map Viewport Container */}
-      <div className="w-full h-[60vh] rounded-3xl overflow-hidden relative shadow-lg border border-slate-200 bg-slate-50">
+      <div className="w-full h-[55vh] rounded-3xl overflow-hidden relative shadow-lg">
+        {/* activeRoute is now recognized by the IDE */}
+        <MapControl activeRoute={selectedRoute} />
         
-        <MapControl />
-        
-        {/* Floating Toggle Overlay */}
         <div className="absolute top-4 left-4 right-4 z-[1000] flex bg-white/90 backdrop-blur-md p-1 rounded-2xl shadow-xl border border-white/20">
           <button 
             onClick={() => setIsLive(false)}
@@ -46,42 +58,43 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* Dynamic Bottom Sheet UI */}
       <section className="mt-8 px-2">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-black tracking-tight text-slate-900 uppercase italic">
-            {isLive ? "Live Tools" : "Nearby Routes"}
-          </h2>
-          {isLive && (
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-red-600 animate-pulse">LIVE SIGNAL</span>
-              <span className="flex h-2 w-2 rounded-full bg-red-600"></span>
+        <h2 className="text-xl font-black mb-4 italic uppercase text-slate-900">
+          {isLive ? "Live Tools" : "Nearby Routes"}
+        </h2>
+        
+        <div className="stack gap-3">
+          {!isLive ? (
+            routes.map((route) => (
+              <button
+                key={route.id}
+                onClick={() => setSelectedRoute(route.id)}
+                className={`card flex items-center justify-between p-4 transition-all ${
+                  selectedRoute === route.id ? 'border-blue-600 bg-blue-50 shadow-sm' : 'bg-white border-slate-100'
+                }`}
+              >
+                <div className="text-left">
+                  <p className="font-black text-slate-900 leading-tight">{route.name}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase mt-1">{route.neighborhood}</p>
+                </div>
+                <span className={`material-symbols-rounded ${selectedRoute === route.id ? 'text-blue-600' : 'text-slate-300'}`}>
+                  {selectedRoute === route.id ? 'check_circle' : 'arrow_forward_ios'}
+                </span>
+              </button>
+            ))
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <button className="flex flex-col items-center p-6 bg-white rounded-3xl border border-slate-100 shadow-sm active:scale-95 transition-transform">
+                <span className="material-symbols-rounded text-amber-500 mb-2">schedule</span>
+                <span className="text-[10px] font-black uppercase">Running Late</span>
+              </button>
+              <button className="flex flex-col items-center p-6 bg-white rounded-3xl border border-slate-100 shadow-sm active:scale-95 transition-transform">
+                <span className="material-symbols-rounded text-blue-500 mb-2">my_location</span>
+                <span className="text-[10px] font-black uppercase">Share GPS</span>
+              </button>
             </div>
           )}
         </div>
-
-        {isLive ? (
-          <div className="grid grid-cols-2 gap-3">
-            <button className="flex flex-col items-center justify-center p-4 bg-white border border-slate-200 rounded-2xl shadow-sm active:scale-95 transition-transform">
-              <span className="material-symbols-rounded text-amber-500 mb-1">running_with_errors</span>
-              <span className="text-[10px] font-black text-slate-700">RUNNING LATE</span>
-            </button>
-            <button className="flex flex-col items-center justify-center p-4 bg-white border border-slate-200 rounded-2xl shadow-sm active:scale-95 transition-transform">
-              <span className="material-symbols-rounded text-blue-500 mb-1">share_location</span>
-              <span className="text-[10px] font-black text-slate-700">SHARE GPS</span>
-            </button>
-            <button className="col-span-2 flex items-center justify-center gap-2 p-4 bg-red-50 border border-red-100 rounded-2xl active:scale-95 transition-transform text-red-700">
-              <span className="material-symbols-rounded font-bold">emergency</span>
-              <span className="text-xs font-black uppercase">Request Urgent Help</span>
-            </button>
-          </div>
-        ) : (
-          <div className="p-6 text-center bg-white rounded-3xl border border-slate-100 shadow-sm">
-            <p className="text-sm text-slate-500 font-medium italic">
-              Tap a route on the map to see specific stops and times.
-            </p>
-          </div>
-        )}
       </section>
     </div>
   );
