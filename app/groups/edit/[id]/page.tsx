@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/src/lib/firebase/client";
+import { uploadGroupImage } from "@/src/lib/uploadFile"; // Our new helper
 
 export default function EditGroupPage() {
   const { id } = useParams();
   const router = useRouter();
-  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  
+  const [thumbnail, setThumbnail] = useState("");
+  const [gallery, setGallery] = useState<string[]>([]);
 
   // Group State
   const [name, setName] = useState("");
@@ -35,9 +39,11 @@ export default function EditGroupPage() {
       if (!id) return;
       try {
         const docRef = doc(db, "groups", id as string);
-        const snap = await getDoc(docRef);
+        const snap = await getDoc(doc(db, "groups", id as string));
         if (snap.exists()) {
           const data = snap.data();
+          setThumbnail(data.thumbnail || "");
+          setGallery(data.gallery || []);
           setName(data.name || "");
           setDescription(data.description || "");
           setType(data.type || "school active transportation");
@@ -60,6 +66,25 @@ export default function EditGroupPage() {
     };
     fetchGroup();
   }, [id]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'thumbnail' | 'gallery') => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+
+    setUploading(true);
+    try {
+      const url = await uploadGroupImage(id as string, file, type);
+      if (type === 'thumbnail') {
+        setThumbnail(url);
+      } else {
+        setGallery([...gallery, url]);
+      }
+    } catch (err) {
+      console.error("Upload failed:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,6 +221,36 @@ export default function EditGroupPage() {
           </div>
         </div>
 
+        {/* MEDIA SECTION */}
+        <div className="flex flex-col gap-4">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Visual Identity</label>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Thumbnail Upload */}
+            <div className="relative h-48 bg-white rounded-[2rem] border border-slate-200 overflow-hidden group shadow-sm">
+              {thumbnail ? (
+                <img src={thumbnail} alt="Group thumbnail" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-300 italic text-[10px] font-black uppercase">No Thumbnail</div>
+              )}
+              <label className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-all">
+                <span className="material-symbols-rounded text-white">add_a_photo</span>
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'thumbnail')} />
+              </label>
+            </div>
+
+            {/* Gallery Info */}
+            <div className="p-6 bg-slate-900 rounded-[2rem] text-white flex flex-col justify-center">
+              <h4 className="font-black italic uppercase text-lg leading-tight">Hub Gallery</h4>
+              <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest mt-1">{gallery.length} Images Uploaded</p>
+              <label className="mt-4 bg-white/10 hover:bg-white/20 py-3 rounded-xl text-center text-[10px] font-black uppercase cursor-pointer transition-all">
+                Add to Gallery
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'gallery')} />
+              </label>
+            </div>
+          </div>
+        </div>
+        
         {/* Action Buttons */}
         <div className="pt-8 border-t border-slate-100 flex flex-col gap-4">
           <button 
