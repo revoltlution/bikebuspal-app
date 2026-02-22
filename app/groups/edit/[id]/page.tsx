@@ -89,22 +89,32 @@ export default function EditGroupPage() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!id || typeof id !== 'string') return;
+    
     setSaving(true);
     try {
-      const groupRef = doc(db, "groups", id as string);
-      await updateDoc(groupRef, {
+      const groupRef = doc(db, "groups", id);
+      
+      // Explicitly package the data to ensure images are included
+      const updatedData = {
         name,
         description,
         type,
         neighborhood,
         tags,
         contact,
+        thumbnail, // The URL from your thumbnail state
+        gallery,   // The Array of URLs from your gallery state
         updatedAt: serverTimestamp(),
-      });
+      };
+
+      await updateDoc(groupRef, updatedData);
+      
+      console.log("Group Charter Updated with Media:", updatedData);
       router.push("/toolbox/groups");
     } catch (err) {
-      console.error(err);
-      alert("Failed to update group.");
+      console.error("Update error:", err);
+      alert("Failed to sync charter to the cloud.");
     } finally {
       setSaving(false);
     }
