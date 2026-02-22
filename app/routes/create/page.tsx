@@ -77,6 +77,18 @@ export default function CreateRoutePage() {
     <div className="max-w-2xl mx-auto px-4 pb-40 flex flex-col gap-8 mt-8 animate-in slide-in-from-bottom-4 duration-500">
       
       <form onSubmit={handleCreate} className="flex flex-col gap-6">
+        {/* Route Name */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Route Name</label>
+          <input 
+            required
+            value={routeName} 
+            onChange={(e) => setRouteName(e.target.value)} 
+            placeholder="e.g. Alameda Elementary Morning Bus"
+            className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" 
+          />
+        </div>
+
         {/* GPX Upload (Primary Action) */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Upload Path (GPX)</label>
@@ -97,17 +109,7 @@ export default function CreateRoutePage() {
           )}
         </div>
 
-        {/* Route Name */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Route Name</label>
-          <input 
-            required
-            value={routeName} 
-            onChange={(e) => setRouteName(e.target.value)} 
-            placeholder="e.g. Alameda Elementary Morning Bus"
-            className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" 
-          />
-        </div>
+        
 
         {/* Description */}
         <div className="flex flex-col gap-2">

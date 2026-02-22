@@ -121,6 +121,17 @@ export default function EditRoutePage() {
     <div className="max-w-2xl mx-auto px-4 pb-40 flex flex-col gap-8 mt-8 animate-in slide-in-from-bottom-4 duration-500">
       
       <form onSubmit={handleUpdate} className="flex flex-col gap-6">
+
+        {/* Route Name */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Route Name</label>
+          <input 
+            value={routeName} 
+            onChange={(e) => setRouteName(e.target.value)} 
+            className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" 
+          />
+        </div>
+        
         {/* GPX & Preview */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Update Path (GPX)</label>
@@ -137,15 +148,7 @@ export default function EditRoutePage() {
           )}
         </div>
 
-        {/* Route Name */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Route Name</label>
-          <input 
-            value={routeName} 
-            onChange={(e) => setRouteName(e.target.value)} 
-            className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" 
-          />
-        </div>
+        
 
         {/* Description */}
         <div className="flex flex-col gap-2">
