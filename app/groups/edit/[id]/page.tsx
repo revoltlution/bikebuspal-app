@@ -307,7 +307,7 @@ export default function EditGroupPage() {
             disabled={saving} 
             className="bg-slate-900 text-white py-6 rounded-[2.5rem] font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-all disabled:opacity-50"
           >
-            {saving ? "Syncing..." : "Update Charter"}
+            {saving ? "Syncing..." : "SAVE CHANGES"}
           </button>
           
           <button 
