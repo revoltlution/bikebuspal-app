@@ -35,9 +35,11 @@ export default async function RoutesPage() {
 
   const db = adminDb();
 
-  const routesSnap = await db.collection("routes").where("active", "==", true).get();
-  const routes = routesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as RouteDoc) }));
+  const routesSnap = await db.collection("routes")
+    .where("createdBy", "==", user.uid) // The magic filter
+    .get();
 
+  const routes = routesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as RouteDoc) }));
   const now = new Date();
   const nextByRoute = new Map<string, (RideInstanceDoc & { id: string })>();
   
