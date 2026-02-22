@@ -69,11 +69,12 @@ export default function EditGroupPage() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'thumbnail' | 'gallery') => {
     const file = e.target.files?.[0];
-    if (!file || !id) return;
+    // Ensure 'id' exists and is a string
+    if (!file || !id || typeof id !== 'string') return; 
 
     setUploading(true);
     try {
-      const url = await uploadGroupImage(id as string, file, type);
+      const url = await uploadGroupImage(id, file, type); // Use 'id' directly
       if (type === 'thumbnail') {
         setThumbnail(url);
       } else {
