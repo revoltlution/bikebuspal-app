@@ -1,82 +1,61 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import "./globals.css";
 
-const navItems = [
-  { href: "/today", label: "Today", icon: "bolt" },
-  { href: "/schedule", label: "Schedule", icon: "event" },
-  { href: "/discover", label: "Discover", icon: "search" },
-  { href: "/toolbox", label: "Toolbox", icon: "handyman" }, // Replaces Gear
-];
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
-  // 1. Identify if we are on the Map page
-  const isMapPage = pathname.startsWith("/map");
+  const router = useRouter();
+
+  // 1. Identify if we are on a "Root" page or a "Sub" page
+  const rootPages = ["/today", "/schedule", "/discover", "/toolbox"];
+  const isRootPage = rootPages.includes(pathname);
 
   const getPageTitle = () => {
-    // Inside your layout getPageTitle function
-    if (pathname === "/toolbox") return "Toolbox";
+    if (pathname.includes("/routes/create")) return "Create Path";
+    if (pathname.includes("/routes/edit")) return "Edit Path";
     if (pathname === "/toolbox/routes") return "My Routes";
     if (pathname === "/toolbox/groups") return "My Groups";
-    if (pathname.includes("/routes/create")) return "Create Path";
-    
-    // 2. Otherwise, fall back to your nav items or branding
-    const current = navItems.find(item => pathname.startsWith(item.href));
-    return current ? current.label : "Bike Bus Pal";
+    const current = { "/today": "Today", "/discover": "Discover", "/toolbox": "Toolbox" }[pathname];
+    return current || "Bike Bus Pal";
   };
 
   return (
-    <html lang="en">
-      <head>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-      </head>
-      {/* 2. BODY: flex-col and overflow-hidden prevent the 'bounce' and the double-scroll */}
-      <body className="antialiased bg-slate-50 h-screen w-screen overflow-hidden flex flex-col">
-        
-        {/* 3. HEADER: Only render if we AREN'T on the Map page */}
-        {!isMapPage && (
-          /* Global Header in app/layout.tsx */
-        <header className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-md z-[100] px-6 flex items-center justify-between border-b border-slate-100">
-        <h1 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">
-          {getPageTitle()}
-        </h1>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* GLOBAL HEADER */}
+      <header className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-md z-[100] px-6 flex items-center justify-between border-b border-slate-100">
+        <div className="flex items-center gap-4">
+          {/* BACK BUTTON: Only shows on Sub-pages */}
+          {!isRootPage && (
+            <button 
+              onClick={() => router.back()}
+              className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-200 text-slate-400 active:scale-90 transition-all"
+            >
+              <span className="material-symbols-rounded">arrow_back</span>
+            </button>
+          )}
+          
+          <h1 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">
+            {getPageTitle()}
+          </h1>
+        </div>
+
         <Link href="/settings/profile" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center">
           <span className="material-symbols-rounded text-slate-400">person</span>
         </Link>
       </header>
-        )}
 
-        {/* 4. MAIN: Fill the remaining space. relative is key for the absolute map inside */}
-        <main className={`flex-grow relative overflow-hidden ${isMapPage ? '' : 'px-4'}`}>
-          {children}
-        </main>
+      {/* MAIN CONTENT: pt-20 ensures content starts BELOW the 80px header */}
+      <main className="flex-1 pt-20 relative">
+        {children}
+      </main>
 
-        {/* 5. NAVIGATION: Always fixed at the bottom, doesn't move */}
-        <nav className="bottom-nav shrink-0">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link 
-                key={item.href} 
-                href={item.href} 
-                className={`nav-item ${isActive ? 'active' : ''}`}
-              >
-                <span 
-                  className="material-symbols-rounded !text-2xl"
-                  style={{ fontVariationSettings: `'FILL' ${isActive ? 1 : 0}` }}
-                >
-                  {item.icon}
-                </span>
-                <span className="text-[10px] tracking-tight mt-1">{item.label}</span>
-              </Link>
-            );
-          })}
+      {/* NAVBAR: Only shows on Root-pages */}
+      {isRootPage && (
+        <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
+          {/* Your existing Navbar Component */}
         </nav>
-      </body>
-    </html>
+      )}
+    </div>
   );
 }

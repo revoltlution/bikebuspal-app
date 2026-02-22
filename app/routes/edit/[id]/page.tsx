@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "@/src/lib/firebase/client";
+import { db } from "@/src/lib/firebase/client";
 
 const MapPreview = dynamic(() => import("@/src/components/MapControl"), { ssr: false });
 
@@ -15,7 +15,6 @@ export default function EditRoutePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
-  // All Inputs State
   const [routeName, setRouteName] = useState("");
   const [description, setDescription] = useState("");
   const [mode, setMode] = useState("bike bus");
@@ -111,93 +110,136 @@ export default function EditRoutePage() {
     }
   };
 
-  if (loading) return <div className="fixed inset-0 flex items-center justify-center font-black uppercase italic text-slate-300">Loading Workshop...</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh] font-black uppercase italic text-slate-300">
+      Loading Workshop...
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 overflow-y-scroll bg-slate-50">
-      <div className="max-w-2xl mx-auto px-4 pt-24 pb-40 flex flex-col gap-8">
+    /* Layout handles the top padding (pt-20). We provide a consistent pb and margin. */
+    <div className="max-w-2xl mx-auto px-4 pb-40 flex flex-col gap-8 mt-8 animate-in slide-in-from-bottom-4 duration-500">
+      
+      <form onSubmit={handleUpdate} className="flex flex-col gap-6">
+        {/* GPX & Preview */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Update Path (GPX)</label>
+          <input 
+            type="file" 
+            accept=".gpx" 
+            onChange={handleGpxUpload} 
+            className="block w-full text-xs text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-2xl file:border-0 file:font-black file:bg-slate-900 file:text-white shadow-sm" 
+          />
+          {coords.length > 0 && (
+            <div className="mt-2 h-48 w-full rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm">
+              <MapPreview key={`preview-${coords.length}`} customData={coords} />
+            </div>
+          )}
+        </div>
+
+        {/* Route Name */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Route Name</label>
+          <input 
+            value={routeName} 
+            onChange={(e) => setRouteName(e.target.value)} 
+            className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" 
+          />
+        </div>
+
+        {/* Description */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Description / Vibe</label>
+          <textarea 
+            value={description} 
+            onChange={(e) => setDescription(e.target.value)} 
+            rows={3} 
+            className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" 
+          />
+        </div>
+
+        {/* Mode & Difficulty */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Mode</label>
+            <select 
+              value={mode} 
+              onChange={(e) => setMode(e.target.value)} 
+              className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold appearance-none shadow-sm"
+            >
+              <option value="bike bus">Bike Bus</option>
+              <option value="walking school bus">Walking Bus</option>
+              <option value="scooter">Scooter</option>
+              <option value="gravel bike">Gravel Bike</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Difficulty</label>
+            <select 
+              value={difficulty} 
+              onChange={(e) => setDifficulty(e.target.value)} 
+              className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold appearance-none shadow-sm"
+            >
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Neighborhood */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Neighborhood</label>
+          <input 
+            value={neighborhood} 
+            onChange={(e) => setNeighborhood(e.target.value)} 
+            className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold shadow-sm outline-none" 
+          />
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Tags</label>
+          <div className="flex flex-wrap gap-2 px-4 mb-2">
+            {tags.map(tag => (
+              <span key={tag} className="bg-slate-900 text-white text-[9px] font-black uppercase px-3 py-1 rounded-full flex items-center gap-2 shadow-sm">
+                {tag}
+                <button type="button" onClick={() => setTags(tags.filter(t => t !== tag))}>×</button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2 px-2">
+            <input 
+              value={tagInput} 
+              onChange={(e) => setTagInput(e.target.value)} 
+              className="flex-1 p-5 bg-white rounded-2xl border border-slate-200 font-bold text-xs outline-none shadow-sm" 
+              placeholder="Add tag..." 
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} 
+            />
+            <button type="button" onClick={addTag} className="bg-blue-600 text-white px-8 rounded-2xl font-black italic shadow-md active:scale-95 transition-all">ADD</button>
+          </div>
+        </div>
         
-        <header className="flex justify-between items-end px-2">
-          <div>
-            <p className="text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Workshop</p>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900 leading-none">Edit <br/>Route</h2>
-          </div>
-          <button type="button" onClick={handleDelete} className="bg-red-50 text-red-600 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-red-100">Delete</button>
-        </header>
-
-        <form onSubmit={handleUpdate} className="flex flex-col gap-6">
-          {/* GPX & Preview */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Update Path (GPX)</label>
-            <input type="file" accept=".gpx" onChange={handleGpxUpload} className="block w-full text-xs text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-2xl file:border-0 file:font-black file:bg-slate-900 file:text-white shadow-sm" />
-            {coords.length > 0 && (
-              <div className="mt-2 h-48 w-full rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm">
-                <MapPreview key={`preview-${coords.length}`} customData={coords} />
-              </div>
-            )}
-          </div>
-
-          {/* Route Name */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Route Name</label>
-            <input value={routeName} onChange={(e) => setRouteName(e.target.value)} className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" />
-          </div>
-
-          {/* Description */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Description / Vibe</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" />
-          </div>
-
-          {/* Mode & Difficulty */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Mode</label>
-              <select value={mode} onChange={(e) => setMode(e.target.value)} className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold appearance-none shadow-sm">
-                <option value="bike bus">Bike Bus</option>
-                <option value="walking school bus">Walking Bus</option>
-                <option value="scooter">Scooter</option>
-                <option value="gravel bike">Gravel Bike</option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Difficulty</label>
-              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold appearance-none shadow-sm">
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Neighborhood */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Neighborhood</label>
-            <input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold shadow-sm outline-none" />
-          </div>
-
-          {/* Tags */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Tags</label>
-            <div className="flex flex-wrap gap-2 px-4 mb-2">
-              {tags.map(tag => (
-                <span key={tag} className="bg-slate-900 text-white text-[9px] font-black uppercase px-3 py-1 rounded-full flex items-center gap-2">
-                  {tag}
-                  <button type="button" onClick={() => setTags(tags.filter(t => t !== tag))}>×</button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2 px-2">
-              <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} className="flex-1 p-5 bg-white rounded-2xl border border-slate-200 font-bold text-xs outline-none shadow-sm" placeholder="Add tag..." onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())} />
-              <button type="button" onClick={addTag} className="bg-blue-600 text-white px-8 rounded-2xl font-black italic">ADD</button>
-            </div>
-          </div>
-
-          <button type="submit" disabled={saving} className="bg-slate-900 text-white py-6 rounded-[2.5rem] font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-all mt-4 disabled:opacity-50">
+        {/* Secondary Actions */}
+        <div className="pt-6 border-t border-slate-100 mt-4 flex flex-col gap-4">
+          <button 
+            type="submit" 
+            disabled={saving} 
+            className="w-full bg-slate-900 text-white py-6 rounded-[2.5rem] font-black italic uppercase tracking-widest shadow-xl active:scale-95 transition-all disabled:opacity-50"
+          >
             {saving ? "Updating Cloud..." : "Update Route"}
           </button>
-        </form>
-      </div>
+          
+          <button 
+            type="button" 
+            onClick={handleDelete} 
+            className="text-red-500 font-black uppercase text-[10px] tracking-[0.2em] py-4 hover:bg-red-50 rounded-2xl transition-colors"
+          >
+            Delete Route Permanently
+          </button>
+        </div>
+        
+      </form>
     </div>
   );
 }
