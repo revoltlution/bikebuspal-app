@@ -66,18 +66,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
               {/* Replace the div below with your actual Navbar component items */}
               <div className="bg-slate-900 rounded-full p-2 shadow-2xl flex items-center gap-2">
-                 <Link href="/today" className={`p-4 rounded-full ${pathname === '/today' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
-                   <span className="material-symbols-rounded">home</span>
-                 </Link>
-                 <Link href="/schedule" className={`p-4 rounded-full ${pathname === '/schedule' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
-                   <span className="material-symbols-rounded">calendar</span>
-                 </Link>
-                 <Link href="/discover" className={`p-4 rounded-full ${pathname === '/discover' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
-                   <span className="material-symbols-rounded">explore</span>
-                 </Link>
-                 <Link href="/toolbox" className={`p-4 rounded-full ${pathname === '/toolbox' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
-                   <span className="material-symbols-rounded">build</span>
-                 </Link>
+                 <Link href="/today" className={`p-4 rounded-full transition-colors ${pathname === '/today' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                  <span className="material-symbols-rounded">home</span>
+                </Link>
+
+                <Link href="/schedule" className={`p-4 rounded-full transition-colors ${pathname === '/schedule' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                  <span className="material-symbols-rounded">event_upcoming</span>
+                </Link>
+
+                <Link href="/discover" className={`p-4 rounded-full transition-colors ${pathname === '/discover' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                  <span className="material-symbols-rounded">explore</span>
+                </Link>
+
+                <Link href="/toolbox" className={`p-4 rounded-full transition-colors ${pathname === '/toolbox' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                  <span className="material-symbols-rounded">build</span>
+                </Link>
               </div>
             </nav>
           )}
