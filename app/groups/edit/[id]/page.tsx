@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/src/lib/firebase/client";
-import { uploadGroupImage } from "@/src/lib/uploadFile"; // Our new helper
+import { uploadGroupImage, deleteGroupImage } from "@/src/lib/uploadFile"; // Our new helper
 
 export default function EditGroupPage() {
   const { id } = useParams();
@@ -85,6 +85,18 @@ export default function EditGroupPage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const removeThumbnail = async () => {
+    if (thumbnail) {
+      await deleteGroupImage(thumbnail);
+      setThumbnail("");
+    }
+  };
+
+  const removeFromGallery = async (urlToRemove: string) => {
+    await deleteGroupImage(urlToRemove);
+    setGallery(gallery.filter(url => url !== urlToRemove));
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -240,7 +252,16 @@ export default function EditGroupPage() {
             {/* Thumbnail Upload */}
             <div className="relative h-48 bg-white rounded-[2rem] border border-slate-200 overflow-hidden group shadow-sm">
               {thumbnail ? (
-                <img src={thumbnail} alt="Group thumbnail" className="w-full h-full object-cover" />
+                <>
+                <img src={thumbnail} alt="Thumbnail" className="w-full h-full object-cover" />
+                <button 
+                  type="button"
+                  onClick={removeThumbnail}
+                  className="absolute top-4 right-4 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                >
+                  <span className="material-symbols-rounded !text-sm">delete</span>
+                </button>
+              </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-300 italic text-[10px] font-black uppercase">No Thumbnail</div>
               )}
@@ -259,6 +280,23 @@ export default function EditGroupPage() {
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'gallery')} />
               </label>
             </div>
+
+            {/* Gallery Grid */}
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              {gallery.map((url, index) => (
+                <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-100 group">
+                  <img src={url} className="w-full h-full object-cover" />
+                  <button 
+                    type="button"
+                    onClick={() => removeFromGallery(url)}
+                    className="absolute inset-0 bg-red-500/80 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                  >
+                    <span className="material-symbols-rounded">delete</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
         

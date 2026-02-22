@@ -1,5 +1,17 @@
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, deleteObject,uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "./firebase/client";
+
+export const deleteGroupImage = async (fileUrl: string) => {
+  if (!fileUrl) return;
+  // Create a reference from the URL
+  const fileRef = ref(storage, fileUrl);
+  try {
+    await deleteObject(fileRef);
+  } catch (err) {
+    console.error("Storage deletion failed:", err);
+    // Even if storage fails (e.g. file already gone), we should let the UI update
+  }
+};
 
 export const uploadGroupImage = async (groupId: string, file: File, type: 'thumbnail' | 'gallery') => {
   const fileExt = file.name.split('.').pop();
