@@ -69,6 +69,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                  <Link href="/today" className={`p-4 rounded-full ${pathname === '/today' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
                    <span className="material-symbols-rounded">home</span>
                  </Link>
+                 <Link href="/schedule" className={`p-4 rounded-full ${pathname === '/schedule' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
+                   <span className="material-symbols-rounded">calendar</span>
+                 </Link>
                  <Link href="/discover" className={`p-4 rounded-full ${pathname === '/discover' ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
                    <span className="material-symbols-rounded">explore</span>
                  </Link>
