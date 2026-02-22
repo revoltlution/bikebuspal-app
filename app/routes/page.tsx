@@ -66,44 +66,69 @@ export default async function RoutesPage() {
       <h1>Routes</h1>
 
       <div className="stack" style={{ marginTop: 16 }}>
+        
         {routes.map((r) => {
           const nextRide = nextByRoute.get(r.id);
-          const leaderNeeded = !nextRide || (nextRide.leaderUserIds?.length ?? 0) === 0;
-
           const nextRideTime = nextRide
-            ? new Date(nextRide.startDateTime.toDate()).toLocaleString()
-            : `${weekdayName[r.weekday]} ${r.startTimeLocal}`;
+            ? new Date(nextRide.startDateTime.toDate()).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+            : `${weekdayName[r.weekday]}s at ${r.startTimeLocal}`;
 
-        const leaders = nextRide?.leaderUserIds?.length ?? 0;
-        const joined = nextRide?.joinedUserIds?.length ?? 0;
+          const leaders = nextRide?.leaderUserIds?.length ?? 0;
+          const joined = nextRide?.joinedUserIds?.length ?? 0;
 
           return (
-            <div key={r.id} className="card">
-              <div className="row">
-                <div>
-                  <div style={{ fontWeight: 700 }}>{r.name}</div>
-                  <div>{r.schoolName} • {r.city}</div>
-                  <div style={{ marginTop: 6 }}><strong>Next:</strong> {nextRideTime}</div>
-                  <div><strong>Meet:</strong> {r.startLocationLabel}</div>
+            <div key={r.id} className="card" style={{ padding: '24px', borderRadius: '32px', border: '1px solid #e2e8f0', background: 'white' }}>
+              <div className="row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '18px', fontWeight: 900, fontStyle: 'italic', textTransform: 'uppercase', color: '#0f172a' }}>{r.name}</div>
+                  <div style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b', marginTop: '4px' }}>
+                    {r.schoolName} • {r.city}
+                  </div>
+                  
+                  <div style={{ marginTop: '16px', background: '#f8fafc', padding: '12px', borderRadius: '16px' }}>
+                    <div style={{ fontSize: '11px', color: '#475569' }}><strong>NEXT MISSION:</strong> {nextRideTime}</div>
+                    <div style={{ fontSize: '11px', color: '#475569' }}><strong>MEET:</strong> {r.startLocationLabel}</div>
+                  </div>
                 </div>
 
-                <div style={{ textAlign: "right" }}>
-                    
-                    <div style={{ marginBottom: 6 }}>
+                <div style={{ textAlign: "right", display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: leaders === 0 ? '#f59e0b' : '#10b981' }}>
                         {leaders === 0 ? "⚠️ Leader needed" : "✅ Leader assigned"}
                     </div>
 
-                    {nextRide ? (
-                        <div className="badge">
-                        Leaders: {leaders} • Joined: {joined}
-                        </div>
-                    ) : (
-                        <div className="badge">No upcoming ride</div>
-                    )}
-                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, background: '#f1f5f9', padding: '4px 10px', borderRadius: '8px' }}>
+                        Riders: {joined}
+                    </div>
+
+                    {/* ACTION ROW */}
+                    <div style={{ display: "flex", gap: '8px', marginTop: '8px' }}>
                         <StarRouteButton routeId={r.id} starred={starredRouteIds.has(r.id)} />
-                        <Link className="link" href={`/routes/${r.id}`}>View →</Link>
-                        </div>
+                        
+                        {/* THE NEW EDIT BUTTON */}
+                        <Link 
+                          href={`/routes/edit/${r.id}`} 
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            width: '40px', 
+                            height: '40px', 
+                            background: '#f1f5f9', 
+                            borderRadius: '12px',
+                            color: '#64748b'
+                          }}
+                        >
+                          <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>edit_note</span>
+                        </Link>
+
+                        <Link 
+                          className="link" 
+                          href={`/routes/${r.id}`}
+                          style={{ fontSize: '12px', fontWeight: 900, textTransform: 'uppercase', color: '#2563eb', alignSelf: 'center', marginLeft: '8px' }}
+                        >
+                          View →
+                        </Link>
+                    </div>
                 </div>
               </div>
             </div>
