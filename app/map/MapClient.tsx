@@ -19,11 +19,24 @@ import {
 import { syncUserProfile } from "@/src/lib/firebase/profile";
 
 interface MapPoint { lat: number; lng: number; }
-interface MapControlProps { customData: MapPoint[]; }
+// ./app/map/MapClient.tsx
 
+// 1. Update this interface to match MapControl's expectations
+interface MapControlProps {
+  customData: [number, number][]; // Tuple format: [lat, lng]
+  center?: { lat: number; lng: number };
+  startPoint?: [number, number] | null;
+  endPoint?: [number, number] | null;
+}
+
+// 2. Pass the interface to dynamic
 const MapControl = dynamic<MapControlProps>(() => import("@/src/components/MapControl"), { 
   ssr: false,
-  loading: () => <div className="h-full bg-slate-100 animate-pulse flex items-center justify-center rounded-3xl">Loading...</div>
+  loading: () => (
+    <div className="h-full bg-slate-100 animate-pulse flex items-center justify-center rounded-3xl">
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Map...</p>
+    </div>
+  )
 });
 
 export default function MapClient() {

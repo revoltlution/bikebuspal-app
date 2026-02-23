@@ -157,7 +157,7 @@ export default function EditRoutePage() {
 
         {/* Description */}
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Description / Vibe</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Desribe the path</label>
           <textarea 
             value={description} 
             onChange={(e) => setDescription(e.target.value)} 
