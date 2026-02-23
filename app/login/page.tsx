@@ -107,10 +107,14 @@ export default function LoginPage() {
           <button 
             onClick={onGoogle}
             disabled={loading}
-            className="w-full bg-white border border-slate-200 p-5 rounded-[2rem] font-bold flex items-center justify-center gap-3 shadow-sm active:scale-95 transition-all hover:bg-slate-50 disabled:opacity-50"
+            className="w-full bg-white border border-slate-200 p-5 rounded-[2rem] font-bold flex items-center justify-center gap-4 shadow-sm active:scale-95 transition-all hover:bg-slate-50 disabled:opacity-50"
           >
-            <img src={GoogleIcon.src} alt="Google" className="w-5 h-5" />
-            Continue with Google
+            <img 
+              src={GoogleIcon.src} 
+              alt="Google" 
+              className="w-6 h-6 object-contain" // Use w-6 (24px) for better balance with the text
+            />
+            <span className="leading-none">Continue with Google</span>
           </button>
 
           <div className="flex items-center gap-4 my-2">
