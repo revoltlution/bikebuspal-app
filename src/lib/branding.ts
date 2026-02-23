@@ -14,6 +14,24 @@ export const BRANDING = {
     primary: 'bg-blue-600', // BBP Blue
     accent: 'text-blue-600',
     way2zPrimary: 'bg-emerald-600', // Way2Z Green
+  },
+  titles: {
+    // Root Pages
+    "/today": "Today",
+    "/schedule": "Schedule",
+    "/discover": "Discover",
+    "/toolbox": "Toolbox",
+    // Sub-pages
+    "trip-details": "Trip Details",
+    "edit-trip": "Edit Trip",
+    "new-trip": "Create New Trip",
+    "route-details": "Route Details",
+    "edit-route": "Edit Route",
+    "new-route": "Create New Route",   
+    "group-details": "Hub Details",
+    "edit-group": "Edit Hub",
+    "new-group": "Create New Hub",
+    "profile": "Your Profile"
   }
 };
 

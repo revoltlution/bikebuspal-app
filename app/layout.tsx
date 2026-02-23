@@ -10,12 +10,19 @@ import "./globals.css";
 import { MapProvider } from "@/src/context/MapContext";
 import GlobalMap from "@/src/components/GlobalMap";
 
+// Inside RootLayout.tsx
+import { BRANDING } from "@/src/lib/branding";
+
+
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -34,23 +41,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const isLoginPage = pathname === "/login";
 
   const getPageTitle = () => {
-    if (pathname === "/toolbox/routes") return "My Routes";
-    if (pathname === "/toolbox/groups") return "My Groups";
-    if (pathname.includes("/routes/create")) return "New Route";
-    if (pathname.includes("/routes/edit")) return "Edit Path";
-    if (pathname.includes("/groups/create")) return "New Hub";
-    if (pathname.includes("/groups/edit")) return "Edit Hub";
-    if (pathname.includes("/settings/profile")) return "Command Center";
-    if (pathname.includes("/schedule/create")) return "New Mission";
-    
-    const titles: Record<string, string> = { 
-      "/today": "Today", 
-      "/schedule": "Schedule", 
-      "/discover": "Discover", 
-      "/toolbox": "Toolbox" 
+      // 1. Dynamic ID matching (Regex)
+      // Check for /schedule/[id], /toolbox/routes/[id], /toolbox/groups/[id]
+      if (pathname.match(/^\/schedule\/(?!create|edit)[a-zA-Z0-9_-]+$/)) return BRANDING.titles["trip-details"];
+      if (pathname.match(/^\/toolbox\/routes\/(?!create|edit)[a-zA-Z0-9_-]+$/)) return BRANDING.titles["route-details"];
+      if (pathname.match(/^\/toolbox\/groups\/(?!create|edit)[a-zA-Z0-9_-]+$/)) return BRANDING.titles["group-details"];
+
+      // 2. Exact Path Matching (using the keys from your BRANDING object)
+      const pathMap: Record<string, string> = {
+        "/today": BRANDING.titles["/today"],
+        "/schedule": BRANDING.titles["/today"],
+        "/discover": BRANDING.titles["/discover"],
+        "/toolbox": BRANDING.titles["/toolbox"],
+        "/schedule/create": BRANDING.titles["new-trip"],
+        "/toolbox/routes/create": BRANDING.titles["new-route"],
+        "/toolbox/groups/create": BRANDING.titles["new-group"],
+        "/settings/profile": BRANDING.titles["profile"],
+      };
+
+      // 3. Partial matching for Edits
+      if (pathname.includes("/schedule/edit")) return BRANDING.titles["edit-trip"];
+      if (pathname.includes("/routes/edit")) return BRANDING.titles["edit-route"];
+      if (pathname.includes("/groups/edit")) return BRANDING.titles["edit-group"];
+
+      return pathMap[pathname] || BRANDING.name;
     };
-    return titles[pathname] || "Bike Bus Pal";
-  };
+
 
   // Prevent UI flicker while checking if user is logged in
   if (authLoading && !isLoginPage) {
@@ -74,15 +90,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" 
       />
     </head>
-    <body className="antialiased bg-slate-50 text-slate-900 overflow-x-hidden">
+    {/* CHANGE: bg-transparent allows the Map to be seen through the 'holes' */}
+    <body className="antialiased bg-transparent text-slate-900 overflow-x-hidden">
       <MapProvider>
         <div className="relative min-h-screen flex flex-col">
           
-          {/* LAYER 0: THE MAP (Fixed background) */}
+          {/* LAYER 0: THE MAP */}
           <GlobalMap />
 
-          {/* LAYER 1: THE UI (Floating on top) */}
-          {/* We use pointer-events-none here so clicks pass through to the map unless hitting a button */}
+          {/* LAYER 1: THE UI */}
           <div className="relative z-10 flex flex-col min-h-screen pointer-events-none">
             
             {/* HEADER */}
@@ -104,7 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 <Link 
                   href="/settings/profile" 
-                  className="w-10 h-10 rounded-full bg-slate-100 border-2 border-white shadow-md flex items-center justify-center overflow-hidden active:scale-90 transition-all hover:border-blue-500"
+                  className={`w-10 h-10 rounded-full border-2 border-white shadow-md flex items-center justify-center overflow-hidden active:scale-90 transition-all hover:border-blue-500 ${BRANDING.isWay2Z ? 'bg-emerald-100' : 'bg-slate-100'}`}
                 >
                   {user?.photoURL ? (
                     <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
@@ -116,11 +132,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             )}
 
             {/* MAIN PAGE CONTENT */}
+            {/* NOTE: Ensure individual pages (TripDetails, Today, etc.) 
+                now have bg-slate-50 or bg-slate-50/90 to cover the map where desired. */}
             <main className={`flex-1 flex flex-col pointer-events-auto ${isLoginPage ? "pt-0" : "pt-20"}`}>
               {children}
             </main>
 
-            {/* NAVBAR: Style Refresh */}
+            {/* NAVBAR */}
             {!isLoginPage && isRootPage && (
               <nav className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] pointer-events-auto">
                 <div className="bg-slate-900/90 backdrop-blur-2xl rounded-[2rem] p-2 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 flex items-center gap-1">
@@ -131,12 +149,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                      { href: "/toolbox", icon: "handyman", label: "Tools" }
                    ].map((link) => {
                      const isActive = pathname === link.href;
+                     const activeClass = BRANDING.isWay2Z ? 'bg-emerald-600' : 'bg-blue-600';
                      return (
                        <Link 
                         key={link.href}
                         href={link.href} 
                         className={`group relative flex flex-col items-center justify-center w-14 h-14 rounded-2xl transition-all duration-300 ${
-                          isActive ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-200'
+                          isActive ? `${activeClass} text-white shadow-lg` : 'text-slate-500 hover:text-slate-200'
                         }`}
                        >
                         <span className="material-symbols-rounded !text-[22px]">{link.icon}</span>

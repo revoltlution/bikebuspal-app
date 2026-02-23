@@ -10,14 +10,18 @@ interface MapPoint {
 }
 
 interface MapControlProps {
-  customData: MapPoint[];
+  customData: [number, number][];
   center?: { lat: number; lng: number };
+  startPoint?: [number, number] | null;
+  endPoint?: [number, number] | null;
 }
 
-export default function MapControl({ customData, center }: MapControlProps) {
-  const mapRef = useRef<L.Map | null>(null);
+export default function MapControl({ customData, center, startPoint, endPoint }: MapControlProps) {  const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
+  const startMarkerRef = useRef<L.CircleMarker | null>(null);
+  const endMarkerRef = useRef<L.CircleMarker | null>(null);
+  
 
   // 1. INITIALIZE MAP
   useEffect(() => {
@@ -41,33 +45,54 @@ export default function MapControl({ customData, center }: MapControlProps) {
   // 2. DRAW ROUTE & FLY-TO
   useEffect(() => {
     if (!mapRef.current || !customData || customData.length === 0) {
-      // Clear existing route if data is empty
-      if (routeLayerRef.current) {
-        routeLayerRef.current.remove();
-        routeLayerRef.current = null;
-      }
+      // Cleanup everything if data is wiped
+      [routeLayerRef, startMarkerRef, endMarkerRef].forEach(ref => {
+        if (ref.current) {
+          ref.current.remove();
+          ref.current = null;
+        }
+      });
       return;
     }
 
-    const latLngs = customData.map(p => [p.lat, p.lng] as L.LatLngExpression);
+    const latLngs = customData as L.LatLngExpression[];
 
-    // Remove old layer if it exists
-    if (routeLayerRef.current) {
-      routeLayerRef.current.remove();
-    }
-
-    // Add new route line
+    // 1. Update the Polyline
+    if (routeLayerRef.current) routeLayerRef.current.remove();
     routeLayerRef.current = L.polyline(latLngs, {
-      color: "#2563eb", // Blue-600
+      color: "#2563eb",
       weight: 6,
       opacity: 0.8,
       lineJoin: 'round'
     }).addTo(mapRef.current);
 
-    // TRIGGER THE FLY-TO
+    // 2. Update START Marker [0]
+    if (startMarkerRef.current) startMarkerRef.current.remove();
+    startMarkerRef.current = L.circleMarker(latLngs[0], {
+      radius: 8,
+      fillColor: "#10b981", // Emerald Green
+      color: "#fff",
+      weight: 3,
+      fillOpacity: 1,
+      pane: 'markerPane' // Ensure markers stay above the line
+    }).addTo(mapRef.current);
+
+    // 3. Update FINISH Marker [length - 1]
+    const lastIndex = latLngs.length - 1;
+    if (endMarkerRef.current) endMarkerRef.current.remove();
+    endMarkerRef.current = L.circleMarker(latLngs[lastIndex], {
+      radius: 8,
+      fillColor: "#ef4444", // Red
+      color: "#fff",
+      weight: 3,
+      fillOpacity: 1,
+      pane: 'markerPane'
+    }).addTo(mapRef.current);
+
+    // 4. Fit Bounds
     const bounds = L.latLngBounds(latLngs);
     mapRef.current.flyToBounds(bounds, {
-      padding: [80, 80], // Space for our UI overlays
+      padding: [80, 80],
       duration: 1.5
     });
 

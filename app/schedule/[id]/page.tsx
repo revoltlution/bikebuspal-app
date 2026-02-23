@@ -64,6 +64,7 @@ export default function TripDetailsPage({ params }: { params: Promise<{ id: stri
   };
 
   useEffect(() => {
+    document.title = "Trip Details | Bike Bus Pal";
     const loadTrip = async () => {
       try {
         const tripSnap = await getDoc(doc(db, "trips", id));
@@ -103,27 +104,24 @@ export default function TripDetailsPage({ params }: { params: Promise<{ id: stri
     loadTrip();
   }, [id, router]);
 
-  useEffect(() => {
-  // 1. Guard: Only run if we have a routeId
+  // map state management for route preview
+useEffect(() => {
   if (!trip?.routeId) return;
 
   const fetchRoute = async () => {
     try {
       const routeSnap = await getDoc(doc(db, "routes", trip.routeId!));
-      
       if (routeSnap.exists()) {
-        // 2. Get raw coordinates from Firestore [lng, lat]
         const rawCoords = routeSnap.data().coordinates || [];
         
-        // 3. Guard: Ensure we have data
         if (rawCoords.length > 0) {
-          // 4. Map to the MapPoint { lat, lng } format your Context expects
+          // Leaflet often prefers [lat, lng] or specifically formatted objects
+          // Let's stick to the {lat, lng} object but ensure they are numbers
           const formattedPoints = rawCoords.map((c: any) => ({ 
-            lat: c[1], 
-            lng: c[0] 
+            lat: Number(c[1]), 
+            lng: Number(c[0]) 
           }));
 
-          // 5. Update the Map State once
           setActiveRoute({
             id: trip.routeId!,
             coordinates: formattedPoints,
@@ -140,8 +138,6 @@ export default function TripDetailsPage({ params }: { params: Promise<{ id: stri
   };
 
   fetchRoute();
-
-  // 6. Cleanup: Reset map when navigating away
   return () => { 
     setActiveRoute(null); 
     setMode('discovery'); 
@@ -155,7 +151,7 @@ export default function TripDetailsPage({ params }: { params: Promise<{ id: stri
   const isJoined = trip?.participants?.includes(currentUserId);
 
   return (
-    <div className="flex-1 bg-slate-50 min-h-screen pb-40">
+    <div className="flex-1 bg-slate-50/90 min-h-screen pb-40 pointer-events-auto">
       <div className="max-w-xl mx-auto p-6 space-y-4">
         
         {/* 1. MAIN PANEL */}

@@ -131,7 +131,7 @@ export default function EditRoutePage() {
             className="p-6 bg-white rounded-[2rem] border border-slate-200 font-bold outline-none shadow-sm" 
           />
         </div>
-        
+
         {/* GPX & Preview */}
         <div className="flex flex-col gap-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Update Path (GPX)</label>
@@ -143,7 +143,12 @@ export default function EditRoutePage() {
           />
           {coords.length > 0 && (
             <div className="mt-2 h-48 w-full rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm">
-              <MapPreview key={`preview-${coords.length}`} customData={coords} />
+              <MapPreview 
+                customData={coords.map((c: any) => [c.lat, c.lng] as [number, number])}
+                // Derived directly from the same logic
+                startPoint={coords.length > 0 ? [coords[0].lat, coords[0].lng] : null}
+                endPoint={coords.length > 0 ? [coords[coords.length - 1].lat, coords[coords.length - 1].lng] : null}
+                />
             </div>
           )}
         </div>
