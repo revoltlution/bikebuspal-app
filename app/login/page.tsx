@@ -98,7 +98,7 @@ export default function LoginPage() {
             Bike Bus <span className="text-blue-600">Pal</span>
           </h1>
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-2">
-            The Fleet is Waiting
+            Neighbors helping neighbors travel together
           </p>
         </div>
 
@@ -107,14 +107,16 @@ export default function LoginPage() {
           <button 
             onClick={onGoogle}
             disabled={loading}
-            className="w-full bg-white border border-slate-200 p-5 rounded-[2rem] font-bold flex items-center justify-center gap-4 shadow-sm active:scale-95 transition-all hover:bg-slate-50 disabled:opacity-50"
+            className="w-full bg-white border border-slate-200 p-4 rounded-[2rem] font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all hover:bg-slate-50"
           >
-            <img 
-              src={GoogleIcon.src} 
-              alt="Google" 
-              className="w-6 h-6 object-contain" // Use w-6 (24px) for better balance with the text
-            />
-            <span className="leading-none">Continue with Google</span>
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img 
+                src={GoogleIcon.src} 
+                alt="Google" 
+                className="w-full h-full object-contain scale-125" // Scale-125 forces it past its internal padding
+              />
+            </div>
+            <span className="pr-4">Continue with Google</span>
           </button>
 
           <div className="flex items-center gap-4 my-2">
