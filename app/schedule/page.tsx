@@ -1,118 +1,131 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { auth, db } from "@/src/lib/firebase/client";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { BRANDING } from "@/src/lib/branding";
 import Link from "next/link";
-import { db, auth } from "@/src/lib/firebase/client";
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  doc, 
-  getDoc, 
-  orderBy 
-} from "firebase/firestore";
+
+interface Trip {
+  id: string;
+  title: string;
+  date: string;
+  startTime: string;
+  mode: 'bicycle' | 'walking' | 'transit' | 'carpool';
+  leaderId: string;
+  isLeader: boolean;
+  isCarbonSaving: boolean;
+}
+
+const MODE_ICONS = {
+  bicycle: { icon: 'directions_bike', color: 'text-blue-600' },
+  walking: { icon: 'directions_walk', color: 'text-emerald-600' },
+  transit: { icon: 'directions_bus', color: 'text-purple-600' },
+  carpool: { icon: 'directions_car', color: 'text-orange-600' }
+};
+
+
 
 export default function SchedulePage() {
-  const [scheduledEvents, setScheduledEvents] = useState<any[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  // Inside SchedulePage component
+  const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
+
+  // Split the trips based on date
+  const now = new Date();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const upcomingTrips = trips.filter(t => t.date >= todayStr);
+  const pastTrips = trips.filter(t => t.date < todayStr);
+
+  const displayTrips = filter === 'upcoming' ? upcomingTrips : pastTrips;
 
   useEffect(() => {
-    const fetchMySchedule = async () => {
+    const fetchTrips = async () => {
       const user = auth.currentUser;
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      if (!user) return;
 
       try {
-        // 1. Fetch Events where the user is a rider
-        const eventQuery = query(
-          collection(db, "events"),
-          where("riders", "array-contains", user.uid),
-          orderBy("dateTime", "asc")
-        );
-        const eventSnap = await getDocs(eventQuery);
-
-        // 2. Hydrate Events with Route Data
-        const hydratedEvents = await Promise.all(
-          eventSnap.docs.map(async (eventDoc) => {
-            const eventData = eventDoc.data();
-            
-            // Fetch the linked route details
-            const routeRef = doc(db, "routes", eventData.routeId);
-            const routeSnap = await getDoc(routeRef);
-            
-            return {
-              id: eventDoc.id,
-              ...eventData,
-              // Fallback if route was deleted
-              routeInfo: routeSnap.exists() ? routeSnap.data() : { name: "Unknown Route" },
-              // Convert Firestore Timestamp to JS Date
-              jsDate: eventData.dateTime.toDate()
-            };
-          })
+        const q = query(
+          collection(db, "rides"),
+          where("participants", "array-contains", user.uid),
+          orderBy("date", "asc")
         );
 
-        setScheduledEvents(hydratedEvents);
+        const snap = await getDocs(q);
+        const fetched = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          isLeader: doc.data().leaderId === user.uid
+        })) as Trip[];
+
+        setTrips(fetched);
       } catch (err) {
-        console.error("Schedule Load Error:", err);
+        console.error("Error fetching trips:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMySchedule();
+    fetchTrips();
   }, []);
 
-  if (loading) return <div className="p-8 font-black italic uppercase text-slate-400">Loading your commitments...</div>;
+  if (loading) return <div className="p-20 text-center font-black italic uppercase text-slate-300 tracking-widest">Syncing {BRANDING.term.events}...</div>;
 
   return (
-    <div className="flex flex-col gap-8 pb-24">
-      {/* ... keep your existing header ... */}
+    <div className="flex-1 px-6 pb-32 mt-6 animate-in fade-in duration-500">
+      
+      {/* --- HEADER SECTION --- */}
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h2 className="text-4xl font-black italic uppercase tracking-tighter">Your {BRANDING.term.events}</h2>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{BRANDING.motto}</p>
+        </div>
+        <Link href="/schedule/create" className="bg-slate-900 text-white p-4 rounded-2xl shadow-lg active:scale-90 transition-transform">
+          <span className="material-symbols-rounded">add</span>
+        </Link>
+      </div>
 
-      <section className="flex flex-col gap-6 px-2">
-        {scheduledEvents.length === 0 ? (
-          <div className="p-10 text-center bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 text-slate-400">
-            No upcoming rides found.
-          </div>
-        ) : (
-          scheduledEvents.map((event) => (
-            <div key={event.id} className="relative flex gap-4">
-              {/* DATE COLUMN */}
-              <div className="flex flex-col items-center shrink-0 w-12 pt-1">
-                <span className="text-[10px] font-black text-blue-600 uppercase">
-                  {event.jsDate.toLocaleString('default', { month: 'short' })}
-                </span>
-                <span className="text-2xl font-black leading-none">
-                  {event.jsDate.getDate()}
-                </span>
-              </div>
+      {/* --- TAB SWITCHER (NEW LOCATION) --- */}
+      <div className="flex p-1 bg-slate-200/50 rounded-[1.5rem] mb-8 w-fit">
+        <button 
+          onClick={() => setFilter('upcoming')}
+          className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+            filter === 'upcoming' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
+          }`}
+        >
+          Upcoming
+        </button>
+        <button 
+          onClick={() => setFilter('past')}
+          className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+            filter === 'past' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
+          }`}
+        >
+          Past {BRANDING.term.events}
+        </button>
+      </div>
 
-              {/* EVENT CARD */}
-              <Link 
-                href={`/map?mode=live&route=${event.routeId}&event=${event.id}`} 
-                className="flex-grow bg-white p-5 rounded-3xl border border-slate-200 shadow-sm active:scale-95 transition-all"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-black italic uppercase text-slate-900 leading-tight">
-                    {event.routeInfo.name}
-                  </h3>
-                  <span className="text-[9px] font-black bg-blue-50 text-blue-600 px-2 py-1 rounded-md uppercase">
-                    {event.jsDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <span className="material-symbols-rounded !text-sm">location_on</span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest truncate">
-                    {event.routeInfo.neighborhood}
-                  </span>
-                </div>
+      {/* --- TRIPS LIST --- */}
+      {displayTrips.length === 0 ? (
+        <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] p-12 text-center">
+          <span className="material-symbols-rounded text-4xl text-slate-200 mb-4">calendar_today</span>
+          <p className="font-bold text-slate-400 uppercase text-xs tracking-tight">
+            No {filter} {BRANDING.term.events.toLowerCase()} found.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {displayTrips.map(trip => { // Use displayTrips here!
+            const mode = MODE_ICONS[trip.mode] || MODE_ICONS.bicycle;
+            return (
+              <Link key={trip.id} href={`/schedule/${trip.id}`} className="block group">
+                {/* ... Card Content ... */}
               </Link>
-            </div>
-          ))
-        )}
-      </section>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
