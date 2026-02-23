@@ -3,40 +3,30 @@
 import { useEffect, useState, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link"; // FIXED: Missing Import
+import Link from "next/link";
 
 // Firebase Imports
 import { db, auth } from "@/src/lib/firebase/client"; 
-import { 
-  collection, 
-  getDocs, 
-  deleteDoc, 
-  doc, 
-  getDoc,
-  updateDoc 
-} from "firebase/firestore";
-
+import { collection, getDocs, deleteDoc, doc, getDoc, updateDoc } from "firebase/firestore";
 import { syncUserProfile } from "@/src/lib/firebase/profile";
 
-interface MapPoint { lat: number; lng: number; }
-// ./app/map/MapClient.tsx
+// 1. Define or Import the interface
+interface MapPoint { 
+  lat: number; 
+  lng: number; 
+}
 
-// 1. Update this interface to match MapControl's expectations
 interface MapControlProps {
-  customData: [number, number][]; // Tuple format: [lat, lng]
+  customData: [number, number][]; 
   center?: { lat: number; lng: number };
   startPoint?: [number, number] | null;
   endPoint?: [number, number] | null;
 }
 
-// 2. Pass the interface to dynamic
+// 2. Setup the Dynamic Import
 const MapControl = dynamic<MapControlProps>(() => import("@/src/components/MapControl"), { 
   ssr: false,
-  loading: () => (
-    <div className="h-full bg-slate-100 animate-pulse flex items-center justify-center rounded-3xl">
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Map...</p>
-    </div>
-  )
+  loading: () => <div className="absolute inset-0 bg-slate-100 animate-pulse" />
 });
 
 export default function MapClient() {
@@ -53,10 +43,23 @@ function MapClientContent() {
   
   const [routes, setRoutes] = useState<any[]>([]);
   const [selectedRouteId, setSelectedRouteId] = useState("");
+  // MOVE COORDS HERE so it's in scope for the return statement
+  const [coords, setCoords] = useState<MapPoint[]>([]);
+  
   const [isLive, setIsLive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState("All");
+
+  // NEW EFFECT: Sync the map coords whenever the selection changes
+  useEffect(() => {
+    const active = routes.find(r => r.id === selectedRouteId);
+    if (active?.coordinates) {
+      setCoords(active.coordinates);
+    } else {
+      setCoords([]);
+    }
+  }, [selectedRouteId, routes]);
 
   const shareRoute = () => {
     const activeRoute = routes.find(r => r.id === selectedRouteId);
@@ -152,7 +155,10 @@ function MapClientContent() {
     
     {/* 2. THE BACKGROUND MAP: Full screen underlay */}
     <div className="absolute inset-0 z-0">
-      <MapControl customData={activeRoute?.coordinates || []} />
+      {/* Now 'coords' is defined in this scope! */}
+      <MapControl 
+        customData={coords.map((c: MapPoint) => [c.lat, c.lng] as [number, number])}
+      />
     </div>
 
     {/* 3. TOP OVERLAY: Mode Toggles & In-Line Selector */}
