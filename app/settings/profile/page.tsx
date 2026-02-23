@@ -22,6 +22,9 @@ export default function ProfilePage() {
   const [depInput, setDepInput] = useState("");
 
   const [confirmSignOut, setConfirmSignOut] = useState(false);
+  // Inside ProfilePage component
+    const [authorizedViewers, setAuthorizedViewers] = useState<string[]>([]);
+    const [newViewerUid, setNewViewerUid] = useState(""); // Temporary for manual entry
 
   // Notification State
   const [notifications, setNotifications] = useState({
@@ -32,33 +35,61 @@ export default function ProfilePage() {
     groupUpdates: true,
   });
 
-  useEffect(() => {
+  // 1. Update your useEffect to properly fetch authorizedViewers
+    useEffect(() => {
     const fetchProfile = async () => {
-      const user = auth.currentUser;
-      if (!user) return router.push("/");
+        const user = auth.currentUser;
+        if (!user) return router.push("/");
 
-      const docRef = doc(db, "users", user.uid);
-      const snap = await getDoc(docRef);
+        const docRef = doc(db, "users", user.uid);
+        const snap = await getDoc(docRef);
 
-      if (snap.exists()) {
+        if (snap.exists()) {
         const data = snap.data();
         setDisplayName(data.displayName || "");
         setFullName(data.fullName || "");
         setAvatarUrl(data.avatarUrl || user.photoURL || "");
         setShareGps(data.shareGps ?? true);
         setDependents(data.dependents || []);
+        // Load the trust circle from DB
+        setAuthorizedViewers(data.authorizedViewers || []); 
         setNotifications(data.notifications || {
-          email: true,
-          preEvent: true,
-          eventUpdates: true,
-          eventCompleted: false,
-          groupUpdates: true,
+            email: true,
+            preEvent: true,
+            eventUpdates: true,
+            eventCompleted: false,
+            groupUpdates: true,
         });
-      }
-      setLoading(false);
+        }
+        setLoading(false);
     };
     fetchProfile();
-  }, [router]);
+    }, [router]);
+
+    // 2. Update your handleSave to include the authorizedViewers array
+    const handleSave = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    setSaving(true);
+    try {
+        await setDoc(doc(db, "users", user.uid), {
+        displayName,
+        fullName,
+        avatarUrl,
+        shareGps,
+        dependents,
+        notifications,
+        authorizedViewers, // <--- Add this to the save object
+        updatedAt: serverTimestamp(),
+        }, { merge: true });
+        alert("Profile & Trust Circle Synced.");
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setSaving(false);
+    }
+    };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,28 +109,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSave = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    setSaving(true);
-    try {
-      await setDoc(doc(db, "users", user.uid), {
-        displayName,
-        fullName,
-        avatarUrl,
-        shareGps,
-        dependents,
-        notifications,
-        updatedAt: serverTimestamp(),
-      }, { merge: true });
-      alert("Profile Synced.");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
-    }
-  };
+  
 
   const addDependent = () => {
     if (depInput.trim() && !dependents.includes(depInput.trim())) {
@@ -200,6 +210,53 @@ export default function ProfilePage() {
             <p className="text-[9px] text-slate-400 font-bold uppercase">Share GPS when leading a mission</p>
           </div>
           <input type="checkbox" checked={shareGps} onChange={(e) => setShareGps(e.target.checked)} className="w-6 h-6 accent-blue-600" />
+        </section>
+
+        {/* Trust Circle Section */}
+        <section className="flex flex-col gap-4">
+        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">
+            Trusted Leaders (Can see kids' names)
+        </label>
+        
+        <div className="bg-white rounded-[2rem] border border-slate-200 p-6 shadow-sm">
+            <div className="space-y-3 mb-4">
+            {authorizedViewers.length === 0 ? (
+                <p className="text-[10px] text-slate-400 font-bold uppercase italic">No trusted leaders added yet.</p>
+            ) : (
+                authorizedViewers.map(uid => (
+                <div key={uid} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-mono font-bold text-slate-500 truncate mr-4">{uid}</span>
+                    <button 
+                    onClick={() => setAuthorizedViewers(authorizedViewers.filter(id => id !== uid))}
+                    className="text-red-500 material-symbols-rounded !text-sm"
+                    >
+                    remove_circle
+                    </button>
+                </div>
+                ))
+            )}
+            </div>
+
+            <div className="flex gap-2">
+            <input 
+                value={newViewerUid} 
+                onChange={(e) => setNewViewerUid(e.target.value)} 
+                placeholder="Paste Leader UID..." 
+                className="flex-1 p-4 bg-slate-50 rounded-xl border border-slate-100 font-mono text-[10px] outline-none" 
+            />
+            <button 
+                onClick={() => {
+                if (newViewerUid && !authorizedViewers.includes(newViewerUid)) {
+                    setAuthorizedViewers([...authorizedViewers, newViewerUid]);
+                    setNewViewerUid("");
+                }
+                }} 
+                className="bg-slate-900 text-white px-4 rounded-xl font-black italic text-[10px]"
+            >
+                TRUST
+            </button>
+            </div>
+        </div>
         </section>
 
         {/* Actions */}
