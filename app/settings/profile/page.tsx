@@ -68,28 +68,37 @@ export default function ProfilePage() {
 
     // 2. Update your handleSave to include the authorizedViewers array
     const handleSave = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
+        const user = auth.currentUser;
+        if (!user) return;
 
-    setSaving(true);
-    try {
-        await setDoc(doc(db, "users", user.uid), {
-        displayName,
-        fullName,
-        avatarUrl,
-        shareGps,
-        dependents,
-        notifications,
-        authorizedViewers, // <--- Add this to the save object
-        updatedAt: serverTimestamp(),
-        }, { merge: true });
-        alert("Profile & Trust Circle Synced.");
-    } catch (err) {
-        console.error(err);
-    } finally {
-        setSaving(false);
-    }
-    };
+        setSaving(true);
+        try {
+            const userRef = doc(db, "users", user.uid);
+            const privateRef = doc(db, "users", user.uid, "private", "metadata");
+
+            // Save Public Data
+            await setDoc(userRef, {
+            displayName,
+            avatarUrl,
+            authorizedViewers,
+            updatedAt: serverTimestamp(),
+            }, { merge: true });
+
+            // Save Private Data
+            await setDoc(privateRef, {
+            fullName, // Moving Full Name to private is also safer
+            dependents,
+            notifications,
+            shareGps,
+            }, { merge: true });
+
+            alert("Profile Hard-Secured.");
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setSaving(false);
+        }
+        };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -117,6 +126,33 @@ export default function ProfilePage() {
       setDepInput("");
     }
   };
+
+  const fetchProfile = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userRef = doc(db, "users", user.uid);
+    const privateRef = doc(db, "users", user.uid, "private", "metadata");
+
+    const [userSnap, privateSnap] = await Promise.all([
+        getDoc(userRef),
+        getDoc(privateRef)
+    ]);
+
+    if (userSnap.exists()) {
+        const data = userSnap.data();
+        setDisplayName(data.displayName || "");
+        setAuthorizedViewers(data.authorizedViewers || []);
+        setAvatarUrl(data.avatarUrl || user.photoURL || "");
+    }
+
+    if (privateSnap.exists()) {
+        const privateData = privateSnap.data();
+        setDependents(privateData.dependents || []);
+        setNotifications(privateData.notifications || notifications);
+    }
+    setLoading(false);
+    };
 
   if (loading) return (
     <div className="p-20 text-center font-black italic uppercase text-slate-300">
