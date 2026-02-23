@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { auth } from "@/src/lib/firebase/client";
+import GoogleIcon from "@/src/icons/svg\neutral/web_neutral_rd_na.svg"; // Adjust filename
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -105,9 +106,9 @@ export default function LoginPage() {
           <button 
             onClick={onGoogle}
             disabled={loading}
-            className="w-full bg-white border border-slate-200 p-5 rounded-[2rem] font-bold flex items-center justify-center gap-3 shadow-sm active:scale-95 transition-all hover:bg-slate-50"
+            className="w-full bg-white border border-slate-200 p-5 rounded-[2rem] font-bold flex items-center justify-center gap-3 shadow-sm active:scale-95 transition-all hover:bg-slate-50 disabled:opacity-50"
           >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" className="w-5 h-5" />
+            <img src={GoogleIcon.src} alt="Google" className="w-5 h-5" />
             Continue with Google
           </button>
 
