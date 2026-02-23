@@ -25,36 +25,37 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
 
   // 1. INITIALIZE MAP
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+  if (!containerRef.current || mapRef.current) return;
 
-    // 1. Create the instance
-    const map = L.map(containerRef.current, {
-      zoomControl: false,
-      attributionControl: false,
-      fadeAnimation: true,
-    });
+  const map = L.map(containerRef.current, {
+    zoomControl: false,
+    attributionControl: false,
+    // Add this to help with initialization
+    preferCanvas: true 
+  });
 
-    // 2. Set the initial view
-    map.setView([center?.lat || 45.5231, center?.lng || -122.6765], 13);
+  map.setView([center?.lat || 45.5231, center?.lng || -122.6765], 13);
 
-    // 3. Add tiles
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 19,
-    }).addTo(map);
+  // Use OSM temporarily - it's the most robust against referrer blocking
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-    mapRef.current = map;
+  mapRef.current = map;
 
-    // 4. THE CRITICAL RE-SYNC
-    // Wait for the next macro-task to ensure the DOM is painted
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
+  // IMPORTANT: The "Next.js Lifecycle" Refresh
+  const timer = setTimeout(() => {
+    map.invalidateSize();
+    console.log("Map Container Height:", containerRef.current?.offsetHeight);
+  }, 500);
 
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, []);
+  return () => {
+    clearTimeout(timer);
+    map.remove();
+    mapRef.current = null;
+  };
+}, []);
 
   // 2. DRAW ROUTE & FLY-TO
   // 2. DRAW ROUTE & FLY-TO
