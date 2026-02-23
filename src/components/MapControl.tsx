@@ -27,17 +27,31 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    mapRef.current = L.map(containerRef.current, {
-      zoomControl: false, // Cleaner UI for our floating layout
-      attributionControl: false
-    }).setView([center?.lat || 45.5231, center?.lng || -122.6765], 13);
+    // 1. Create the instance
+    const map = L.map(containerRef.current, {
+      zoomControl: false,
+      attributionControl: false,
+      fadeAnimation: true,
+    });
 
+    // 2. Set the initial view
+    map.setView([center?.lat || 45.5231, center?.lng || -122.6765], 13);
+
+    // 3. Add tiles
     L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
-    }).addTo(mapRef.current);
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    // 4. THE CRITICAL RE-SYNC
+    // Wait for the next macro-task to ensure the DOM is painted
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
 
     return () => {
-      mapRef.current?.remove();
+      map.remove();
       mapRef.current = null;
     };
   }, []);
@@ -111,10 +125,11 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
   }, [customData]);
 
   return (
+  <div className="h-full w-full min-h-[400px] relative"> 
     <div 
       ref={containerRef} 
-      className="h-full w-full" 
-      style={{ background: "#f8fafc" }} 
+      className="absolute inset-0" // Absolute fill ensures it takes parent's 400px
     />
-  );
+  </div>
+);
 }

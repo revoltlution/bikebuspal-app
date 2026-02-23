@@ -2,6 +2,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "leaflet/dist/leaflet.css";
 
 /* FORCE LAYOUT - This will work even if Tailwind utilities fail */
 body {
@@ -149,4 +150,11 @@ header {
   background-clip: padding-box;
   /* This ensures the content inside the bubble (like text) stays visible 
      while the background is erased to show the map below */
+}
+
+/* Ensure the map container actually has a size */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background-color: #f8fafc; /* Placeholder so you can see the box */
 }
