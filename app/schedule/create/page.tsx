@@ -87,21 +87,22 @@ export default function CreateTripPage() {
       setMode('discovery');
     };
   }, [formData.routeId, setActiveRoute, setMode]);
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const docRef = await addDoc(collection(db, "rides"), {
-        ...formData,
-        leaderId: auth.currentUser?.uid,
-        participants: [auth.currentUser?.uid],
-        createdAt: Timestamp.now(),
-      });
-      router.push(`/schedule/${docRef.id}`);
-    } catch (err) {
-      console.error("Trip Creation Error:", err);
-    }
-  };
+  e.preventDefault();
+  try {
+    // Standardize on the 'trips' collection name
+    const docRef = await addDoc(collection(db, "trips"), {
+      ...formData,
+      leaderId: auth.currentUser?.uid,
+      participants: [auth.currentUser?.uid],
+      createdAt: Timestamp.now(),
+    });
+    router.push(`/schedule/${docRef.id}`);
+  } catch (err) {
+    console.error("Trip Creation Error:", err);
+  }
+};
 
 
   return (

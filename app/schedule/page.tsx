@@ -1,65 +1,43 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { auth, db } from "@/src/lib/firebase/client";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { BRANDING } from "@/src/lib/branding";
 import Link from "next/link";
+import { db, auth } from "@/src/lib/firebase/client";
+import { collection, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
+import { BRANDING } from "@/src/lib/branding";
 
 interface Trip {
   id: string;
   title: string;
   date: string;
   startTime: string;
-  mode: 'bicycle' | 'walking' | 'transit' | 'carpool';
-  leaderId: string;
-  isLeader: boolean;
-  isCarbonSaving: boolean;
+  mode: string;
+  participants: string[];
 }
-
-const MODE_ICONS = {
-  bicycle: { icon: 'directions_bike', color: 'text-blue-600' },
-  walking: { icon: 'directions_walk', color: 'text-emerald-600' },
-  transit: { icon: 'directions_bus', color: 'text-purple-600' },
-  carpool: { icon: 'directions_car', color: 'text-orange-600' }
-};
-
-
 
 export default function SchedulePage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
-  // Inside SchedulePage component
-  const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
-
-  // Split the trips based on date
-  const now = new Date();
-  const todayStr = new Date().toISOString().split('T')[0];
-  const upcomingTrips = trips.filter(t => t.date >= todayStr);
-  const pastTrips = trips.filter(t => t.date < todayStr);
-
-  const displayTrips = filter === 'upcoming' ? upcomingTrips : pastTrips;
 
   useEffect(() => {
     const fetchTrips = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
       try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // NORMALIZED: Query the 'trips' collection
         const q = query(
-          collection(db, "rides"),
-          where("participants", "array-contains", user.uid),
+          collection(db, "trips"),
+          where("date", ">=", today),
           orderBy("date", "asc")
         );
 
         const snap = await getDocs(q);
-        const fetched = snap.docs.map(doc => ({
+        const fetchedTrips = snap.docs.map(doc => ({
           id: doc.id,
-          ...doc.data(),
-          isLeader: doc.data().leaderId === user.uid
-        })) as Trip[];
+          ...doc.data()
+        } as Trip));
 
-        setTrips(fetched);
+        setTrips(fetchedTrips);
       } catch (err) {
         console.error("Error fetching trips:", err);
       } finally {
@@ -70,62 +48,68 @@ export default function SchedulePage() {
     fetchTrips();
   }, []);
 
-  if (loading) return <div className="p-20 text-center font-black italic uppercase text-slate-300 tracking-widest">Syncing {BRANDING.term.events}...</div>;
+  if (loading) return <div className="p-8 font-black italic uppercase text-slate-300 animate-pulse">Syncing Timeline...</div>;
 
   return (
-    <div className="flex-1 px-6 pb-32 mt-6 animate-in fade-in duration-500">
-      
-      {/* --- HEADER SECTION --- */}
-      <div className="flex justify-between items-end mb-8">
+    <div className="flex-1 p-6 pb-32 space-y-8 animate-in fade-in duration-700">
+      <header className="flex justify-between items-end">
         <div>
-          <h2 className="text-4xl font-black italic uppercase tracking-tighter">Your {BRANDING.term.events}</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{BRANDING.motto}</p>
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter">Schedule</h1>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Upcoming Neighborhood Trips</p>
         </div>
-        <Link href="/schedule/create" className="bg-slate-900 text-white p-4 rounded-2xl shadow-lg active:scale-90 transition-transform">
+        <Link 
+          href="/schedule/create"
+          className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg active:scale-90 transition-transform"
+        >
           <span className="material-symbols-rounded">add</span>
         </Link>
-      </div>
+      </header>
 
-      {/* --- TAB SWITCHER (NEW LOCATION) --- */}
-      <div className="flex p-1 bg-slate-200/50 rounded-[1.5rem] mb-8 w-fit">
-        <button 
-          onClick={() => setFilter('upcoming')}
-          className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-            filter === 'upcoming' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
-          }`}
-        >
-          Upcoming
-        </button>
-        <button 
-          onClick={() => setFilter('past')}
-          className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-            filter === 'past' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'
-          }`}
-        >
-          Past {BRANDING.term.events}
-        </button>
-      </div>
+      <div className="space-y-4">
+        {trips.length > 0 ? (
+          trips.map((trip) => (
+            <Link 
+              key={trip.id} 
+              href={`/schedule/${trip.id}`}
+              className="block bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-[0.98]"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">
+                    {new Date(trip.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </span>
+                  <h3 className="text-xl font-black italic uppercase tracking-tighter mt-1">{trip.title}</h3>
+                </div>
+                <div className="bg-slate-50 px-3 py-1 rounded-full text-[9px] font-black uppercase text-slate-400 border border-slate-100">
+                  {trip.startTime}
+                </div>
+              </div>
 
-      {/* --- TRIPS LIST --- */}
-      {displayTrips.length === 0 ? (
-        <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] p-12 text-center">
-          <span className="material-symbols-rounded text-4xl text-slate-200 mb-4">calendar_today</span>
-          <p className="font-bold text-slate-400 uppercase text-xs tracking-tight">
-            No {filter} {BRANDING.term.events.toLowerCase()} found.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {displayTrips.map(trip => { // Use displayTrips here!
-            const mode = MODE_ICONS[trip.mode] || MODE_ICONS.bicycle;
-            return (
-              <Link key={trip.id} href={`/schedule/${trip.id}`} className="block group">
-                {/* ... Card Content ... */}
-              </Link>
-            );
-          })}
-        </div>
-      )}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-rounded text-slate-300 !text-sm">group</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">
+                    {trip.participants?.length || 0} Joined
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <span className="material-symbols-rounded text-slate-300 !text-sm">
+                    {trip.mode === 'walking' ? 'directions_walk' : 'directions_bike'}
+                   </span>
+                   <span className="text-[10px] font-bold text-slate-500 uppercase">{trip.mode}</span>
+                </div>
+              </div>
+            </Link>
+          ))
+        ) : (
+          <div className="py-20 text-center space-y-4">
+            <p className="text-slate-400 font-bold uppercase text-xs">No trips scheduled yet</p>
+            <Link href="/schedule/create" className="text-blue-600 font-black italic uppercase text-sm underline">
+              Create the first one
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
