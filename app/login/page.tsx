@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { auth } from "@/src/lib/firebase/client";
-import GoogleIcon from "@/src/icons/svg\neutral/web_neutral_rd_na.svg"; // Adjust filename
+import GoogleIcon from "@/src/icons/svg/neutral/web_neutral_rd_na.svg";
+
 import {
   GoogleAuthProvider,
   signInWithPopup,
