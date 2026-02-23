@@ -13,8 +13,28 @@ import GlobalMap from "@/src/components/GlobalMap";
 // Inside RootLayout.tsx
 import { BRANDING } from "@/src/lib/branding";
 
+// 1. Viewport settings for mobile optimization and PWA compatibility
+export const viewport = {
+  themeColor: BRANDING.isWay2Z ? "#059669" : "#2563eb", // Sets Android status bar color
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1, // Prevents auto-zoom on input focus (crucial for mobile UX)
+  userScalable: false,
+  viewportFit: "cover", // Allows content to flow under the notch
+};
 
-
+// 2. Metadata for SEO and PWA
+export const metadata = {
+  title: BRANDING.name,
+  description: BRANDING.motto,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: BRANDING.name,
+  },
+  // This automatically links your app/manifest.ts
+  manifest: "/manifest", 
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -68,6 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     };
 
 
+
   // Prevent UI flicker while checking if user is logged in
   if (authLoading && !isLoginPage) {
     return (
@@ -103,11 +124,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             
             {/* HEADER */}
             {!isLoginPage && (
-              <header className="fixed top-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl z-[100] px-6 flex items-center justify-between border-b border-slate-200/50 pointer-events-auto">
+              <header className="fixed top-0 left-0 right-0 pt-[env(safe-area-inset-top,0px)] bg-white/80 backdrop-blur-xl z-[100] px-6 flex items-center justify-between border-b border-slate-200/50 pointer-events-auto"
+                style={{ height: `calc(5rem + env(safe-area-inset-top, 0px))` }}              >
                 <div className="flex items-center gap-4">
                   {!isRootPage && (
                     <button 
-                      onClick={() => router.back()}
+                      onClick ={() => router.back()}
                       className="w-10 h-10 flex items-center justify-center bg-white rounded-2xl border border-slate-200 text-slate-400 active:scale-90 transition-all hover:bg-slate-50 shadow-sm"
                     >
                       <span className="material-symbols-rounded">arrow_back</span>
@@ -140,7 +162,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             {/* NAVBAR */}
             {!isLoginPage && isRootPage && (
-              <nav className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] pointer-events-auto">
+              <nav className="fixed bottom-[calc(2.5rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-[100] pointer-events-auto">
                 <div className="bg-slate-900/90 backdrop-blur-2xl rounded-[2rem] p-2 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 flex items-center gap-1">
                    {[
                      { href: "/today", icon: "home", label: "Today" },
