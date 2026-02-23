@@ -104,21 +104,49 @@ export default function TripDetailsPage({ params }: { params: Promise<{ id: stri
   }, [id, router]);
 
   useEffect(() => {
-    if (trip?.routeId) {
-      const fetchRoute = async () => {
-        const routeSnap = await getDoc(doc(db, "routes", trip.routeId!));
-        if (routeSnap.exists()) {
+  // 1. Guard: Only run if we have a routeId
+  if (!trip?.routeId) return;
+
+  const fetchRoute = async () => {
+    try {
+      const routeSnap = await getDoc(doc(db, "routes", trip.routeId!));
+      
+      if (routeSnap.exists()) {
+        // 2. Get raw coordinates from Firestore [lng, lat]
+        const rawCoords = routeSnap.data().coordinates || [];
+        
+        // 3. Guard: Ensure we have data
+        if (rawCoords.length > 0) {
+          // 4. Map to the MapPoint { lat, lng } format your Context expects
+          const formattedPoints = rawCoords.map((c: any) => ({ 
+            lat: c[1], 
+            lng: c[0] 
+          }));
+
+          // 5. Update the Map State once
           setActiveRoute({
             id: trip.routeId!,
-            coordinates: routeSnap.data().coordinates || []
+            coordinates: formattedPoints,
+            startPoint: formattedPoints[0],
+            endPoint: formattedPoints[formattedPoints.length - 1]
           });
+          
           setMode('trip');
         }
-      };
-      fetchRoute();
+      }
+    } catch (err) {
+      console.error("Map Preview Error:", err);
     }
-    return () => { setActiveRoute(null); setMode('discovery'); };
-  }, [trip?.routeId, setActiveRoute, setMode]);
+  };
+
+  fetchRoute();
+
+  // 6. Cleanup: Reset map when navigating away
+  return () => { 
+    setActiveRoute(null); 
+    setMode('discovery'); 
+  };
+}, [trip?.routeId, setActiveRoute, setMode]);
 
   if (loading) return <div className="p-20 text-center font-black italic uppercase text-slate-300 animate-pulse">Syncing...</div>;
 
@@ -219,21 +247,34 @@ export default function TripDetailsPage({ params }: { params: Promise<{ id: stri
           </div>
         </section>
 
-        {/* 4. MAP PREVIEW */}
-        <section className="relative w-full h-80 rounded-[2.5rem] overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)] border-4 border-white bg-transparent group">
-          <div className="absolute inset-0 map-hole-punch" />
-          <div className="absolute top-6 left-6 z-20">
-            <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border border-slate-200">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                </span>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-700">Live Route Preview</p>
+        {/* 4. INTERACTIVE MAP PREVIEW */}
+        <section className="relative w-full h-80 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-transparent group">
+          
+          {/* THIS IS THE HOLE: It must have no background to let the z-0 map show */}
+          <div className="absolute inset-0 bg-transparent pointer-events-none" />
+
+          {/* START / FINISH INDICATORS (UI Overlay) */}
+          <div className="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none z-20">
+            <div className="flex justify-between items-start">
+              <div className="bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <p className="text-[8px] font-black uppercase tracking-widest text-slate-700">Start Point</p>
+              </div>
+              
+              <div className="bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                <p className="text-[8px] font-black uppercase tracking-widest text-slate-700">Finish</p>
               </div>
             </div>
+
+            {/* Center Overlay */}
+            <div className="self-center bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">Route Preview</p>
+            </div>
           </div>
-          <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(0,0,0,0.05)] rounded-[2.5rem]" />
+
+          {/* Subtle Inner Glow to define the map area */}
+          <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.1)] rounded-[2.5rem]" />
         </section>
       </div>
     </div>
