@@ -7,8 +7,12 @@ import { useRouter } from "next/navigation";
 import { BRANDING } from "@/src/lib/branding";
 import GpxUploader from "@/src/components/GpxUploader";
 
+import { doc, getDoc } from "firebase/firestore"; // Add doc and getDoc
+import { useMap } from "@/src/context/MapContext"; // Add useMap
+
 export default function CreateTripPage() {
   const router = useRouter();
+  const { setActiveRoute, setMode } = useMap(); // Add this line
   
   // Data State
   const [hubs, setHubs] = useState<any[]>([]);
@@ -45,10 +49,45 @@ export default function CreateTripPage() {
       // 2. Fetch Personal Routes
       const routeSnap = await getDocs(query(collection(db, "routes"), where("createdBy", "==", user.uid)));
       setRoutes(routeSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+
     };
     fetchData();
   }, []);
 
+  // MAP PREVIEW LOGIC
+  useEffect(() => {
+    const updateMapPreview = async () => {
+      // If no route is selected, reset map to broad view
+      if (!formData.routeId) {
+        setActiveRoute(null);
+        setMode('discovery');
+        return;
+      }
+
+      try {
+        const routeSnap = await getDoc(doc(db, "routes", formData.routeId));
+        if (routeSnap.exists()) {
+          const routeData = routeSnap.data();
+          setActiveRoute({
+            id: formData.routeId,
+            coordinates: routeData.coordinates || []
+          });
+          setMode('trip'); // This triggers the smooth fly-to animation
+        }
+      } catch (err) {
+        console.error("Error fetching route for preview:", err);
+      }
+    };
+
+    updateMapPreview();
+    
+    // Cleanup when leaving page: reset map
+    return () => {
+      setActiveRoute(null);
+      setMode('discovery');
+    };
+  }, [formData.routeId, setActiveRoute, setMode]);
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -63,6 +102,7 @@ export default function CreateTripPage() {
       console.error("Trip Creation Error:", err);
     }
   };
+
 
   return (
     <div className="p-6 pb-40 max-w-2xl mx-auto space-y-10 animate-in fade-in duration-500">
