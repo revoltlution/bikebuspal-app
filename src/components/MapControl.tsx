@@ -4,11 +4,6 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-interface MapPoint {
-  lat: number;
-  lng: number;
-}
-
 interface MapControlProps {
   customData: [number, number][];
   center?: { lat: number; lng: number };
@@ -16,58 +11,56 @@ interface MapControlProps {
   endPoint?: [number, number] | null;
 }
 
-export default function MapControl({ customData, center, startPoint, endPoint }: MapControlProps) {  const mapRef = useRef<L.Map | null>(null);
+export default function MapControl({ customData, center }: MapControlProps) {
+  const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
   const startMarkerRef = useRef<L.CircleMarker | null>(null);
   const endMarkerRef = useRef<L.CircleMarker | null>(null);
-  
 
   // 1. INITIALIZE MAP
   useEffect(() => {
-  if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current) return;
 
-  const map = L.map(containerRef.current, {
-    zoomControl: false,
-    attributionControl: false,
-    // Add this to help with initialization
-    preferCanvas: true 
-  });
+    // GUARD: Prevents "Map container is already initialized" crash
+    if ((containerRef.current as any)._leaflet_id) return;
 
-  map.setView([center?.lat || 45.5231, center?.lng || -122.6765], 13);
+    // Create single map instance
+    const map = L.map(containerRef.current, {
+      zoomControl: false,
+      attributionControl: false,
+      dragging: true,
+      touchZoom: true,
+      scrollWheelZoom: false, // Prevents page scroll hijacking
+      preferCanvas: true 
+    });
 
-  // Use OSM temporarily - it's the most robust against referrer blocking
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+    map.setView([center?.lat || 45.5231, center?.lng || -122.6765], 13);
 
-  // Inside MapControl.tsx - Ensure these settings are NOT disabled
-  mapRef.current = L.map(containerRef.current, {
-    zoomControl: false, // Keep false for clean look
-    dragging: true,      // MUST be true for interaction
-    scrollWheelZoom: false, // Recommended for mobile so they can still scroll the page
-    touchZoom: true,
-    attributionControl: false
-  });
+    // Add Tile Layer
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19,
+    }).addTo(map);
 
-  // IMPORTANT: The "Next.js Lifecycle" Refresh
-  const timer = setTimeout(() => {
-    map.invalidateSize();
-    console.log("Map Container Height:", containerRef.current?.offsetHeight);
-  }, 500);
+    mapRef.current = map;
 
-  return () => {
-    clearTimeout(timer);
-    map.remove();
-    mapRef.current = null;
-  };
-}, []);
+    // Refresh size after DOM settling
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 500);
 
-  // 2. DRAW ROUTE & FLY-TO
+    return () => {
+      clearTimeout(timer);
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []); // Run only once on mount
+
   // 2. DRAW ROUTE & FLY-TO
   useEffect(() => {
-    // 1. Strict Data Validation: Ensure we actually have numbers
+    // Validation
     const validLatLngs = (customData || []).filter(
       (p) => 
         Array.isArray(p) && 
@@ -76,7 +69,6 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
         typeof p[1] === 'number' && !isNaN(p[1])
     ) as L.LatLngExpression[];
 
-    // 2. Guard: If no valid data, cleanup and exit before Leaflet crashes
     if (!mapRef.current || validLatLngs.length === 0) {
       [routeLayerRef, startMarkerRef, endMarkerRef].forEach(ref => {
         if (ref.current) {
@@ -87,7 +79,7 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
       return;
     }
 
-    // 3. Update the Polyline
+    // Update Polyline
     if (routeLayerRef.current) routeLayerRef.current.remove();
     routeLayerRef.current = L.polyline(validLatLngs, {
       color: "#2563eb",
@@ -96,7 +88,7 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
       lineJoin: 'round'
     }).addTo(mapRef.current);
 
-    // 4. Update START Marker [0]
+    // Update Markers
     if (startMarkerRef.current) startMarkerRef.current.remove();
     startMarkerRef.current = L.circleMarker(validLatLngs[0], {
       radius: 8,
@@ -104,10 +96,8 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
       color: "#fff",
       weight: 3,
       fillOpacity: 1,
-      pane: 'markerPane'
     }).addTo(mapRef.current);
 
-    // 5. Update FINISH Marker [last]
     const lastIndex = validLatLngs.length - 1;
     if (endMarkerRef.current) endMarkerRef.current.remove();
     endMarkerRef.current = L.circleMarker(validLatLngs[lastIndex], {
@@ -116,28 +106,27 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
       color: "#fff",
       weight: 3,
       fillOpacity: 1,
-      pane: 'markerPane'
     }).addTo(mapRef.current);
 
-    // 6. Fit Bounds (only if map is ready)
+    // Fit View
     try {
       const bounds = L.latLngBounds(validLatLngs);
-      mapRef.current.flyToBounds(bounds, {
-        padding: [80, 80],
-        duration: 1.5
+      mapRef.current.fitBounds(bounds, {
+        padding: [40, 40],
+        animate: true
       });
     } catch (e) {
-      console.warn("Could not fly to bounds:", e);
+      console.warn("Map Bounds Error:", e);
     }
 
   }, [customData]);
 
   return (
-  <div className="w-full h-full min-h-[100dvh] relative"> 
-    <div 
-      ref={containerRef} 
-      className="absolute inset-0" 
-    />
-  </div>
-);
+    <div className="w-full h-full min-h-[300px] relative"> 
+      <div 
+        ref={containerRef} 
+        className="absolute inset-0" 
+      />
+    </div>
+  );
 }
