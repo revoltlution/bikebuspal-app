@@ -174,3 +174,32 @@ header {
   color: #991b1b !important;
 }
 
+
+
+/* FORCE LEAFLET VISIBILITY */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  background-color: #f8fafc !important;
+  z-index: 1;
+}
+
+/* PREVENT TAILWIND FROM SQUISHING TILES */
+.leaflet-container img.leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+  /* Next.js Image optimization can sometimes interfere */
+  width: 256px !important; 
+  height: 256px !important;
+}
+
+/* Ensure the tile pane is actually visible */
+.leaflet-tile-pane {
+  z-index: 10 !important;
+  opacity: 1 !important;
+}
+
+/* Marker fix - if markers show but tiles don't, this ensures markers stay on top */
+.leaflet-marker-pane {
+  z-index: 600 !important;
+}
