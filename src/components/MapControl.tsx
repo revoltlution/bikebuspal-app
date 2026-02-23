@@ -43,9 +43,19 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
   }, []);
 
   // 2. DRAW ROUTE & FLY-TO
+  // 2. DRAW ROUTE & FLY-TO
   useEffect(() => {
-    if (!mapRef.current || !customData || customData.length === 0) {
-      // Cleanup everything if data is wiped
+    // 1. Strict Data Validation: Ensure we actually have numbers
+    const validLatLngs = (customData || []).filter(
+      (p) => 
+        Array.isArray(p) && 
+        p.length >= 2 && 
+        typeof p[0] === 'number' && !isNaN(p[0]) &&
+        typeof p[1] === 'number' && !isNaN(p[1])
+    ) as L.LatLngExpression[];
+
+    // 2. Guard: If no valid data, cleanup and exit before Leaflet crashes
+    if (!mapRef.current || validLatLngs.length === 0) {
       [routeLayerRef, startMarkerRef, endMarkerRef].forEach(ref => {
         if (ref.current) {
           ref.current.remove();
@@ -55,46 +65,48 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
       return;
     }
 
-    const latLngs = customData as L.LatLngExpression[];
-
-    // 1. Update the Polyline
+    // 3. Update the Polyline
     if (routeLayerRef.current) routeLayerRef.current.remove();
-    routeLayerRef.current = L.polyline(latLngs, {
+    routeLayerRef.current = L.polyline(validLatLngs, {
       color: "#2563eb",
       weight: 6,
       opacity: 0.8,
       lineJoin: 'round'
     }).addTo(mapRef.current);
 
-    // 2. Update START Marker [0]
+    // 4. Update START Marker [0]
     if (startMarkerRef.current) startMarkerRef.current.remove();
-    startMarkerRef.current = L.circleMarker(latLngs[0], {
+    startMarkerRef.current = L.circleMarker(validLatLngs[0], {
       radius: 8,
-      fillColor: "#10b981", // Emerald Green
-      color: "#fff",
-      weight: 3,
-      fillOpacity: 1,
-      pane: 'markerPane' // Ensure markers stay above the line
-    }).addTo(mapRef.current);
-
-    // 3. Update FINISH Marker [length - 1]
-    const lastIndex = latLngs.length - 1;
-    if (endMarkerRef.current) endMarkerRef.current.remove();
-    endMarkerRef.current = L.circleMarker(latLngs[lastIndex], {
-      radius: 8,
-      fillColor: "#ef4444", // Red
+      fillColor: "#10b981", 
       color: "#fff",
       weight: 3,
       fillOpacity: 1,
       pane: 'markerPane'
     }).addTo(mapRef.current);
 
-    // 4. Fit Bounds
-    const bounds = L.latLngBounds(latLngs);
-    mapRef.current.flyToBounds(bounds, {
-      padding: [80, 80],
-      duration: 1.5
-    });
+    // 5. Update FINISH Marker [last]
+    const lastIndex = validLatLngs.length - 1;
+    if (endMarkerRef.current) endMarkerRef.current.remove();
+    endMarkerRef.current = L.circleMarker(validLatLngs[lastIndex], {
+      radius: 8,
+      fillColor: "#ef4444", 
+      color: "#fff",
+      weight: 3,
+      fillOpacity: 1,
+      pane: 'markerPane'
+    }).addTo(mapRef.current);
+
+    // 6. Fit Bounds (only if map is ready)
+    try {
+      const bounds = L.latLngBounds(validLatLngs);
+      mapRef.current.flyToBounds(bounds, {
+        padding: [80, 80],
+        duration: 1.5
+      });
+    } catch (e) {
+      console.warn("Could not fly to bounds:", e);
+    }
 
   }, [customData]);
 
