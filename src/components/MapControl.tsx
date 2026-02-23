@@ -1,24 +1,8 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
-import { useEffect } from 'react';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-
-function ChangeView({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.flyTo(center, 15, { duration: 1.5 });
-  }, [center, map]);
-  return null;
-}
-
-const icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 interface MapPoint {
   lat: number;
@@ -26,39 +10,74 @@ interface MapPoint {
 }
 
 interface MapControlProps {
-  customData: MapPoint[]; 
+  customData: MapPoint[];
+  center?: { lat: number; lng: number };
 }
 
-export default function MapControl({ customData }: MapControlProps) {
-  const defaultCenter: [number, number] = [45.5898, -122.7538]; // St. Johns center
+export default function MapControl({ customData, center }: MapControlProps) {
+  const mapRef = useRef<L.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const routeLayerRef = useRef<L.Polyline | null>(null);
 
-  if (!customData || customData.length === 0) {
-    return (
-      <MapContainer center={defaultCenter} zoom={13} className="h-full w-full">
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      </MapContainer>
-    );
-  }
+  // 1. INITIALIZE MAP
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
 
-  // Ensure the points have lat and lng before mapping
-  const positions = customData
-    .filter(p => p && typeof p.lat === 'number')
-    .map(p => [p.lat, p.lng] as [number, number]);
+    mapRef.current = L.map(containerRef.current, {
+      zoomControl: false, // Cleaner UI for our floating layout
+      attributionControl: false
+    }).setView([center?.lat || 45.5231, center?.lng || -122.6765], 13);
 
-  if (positions.length === 0) return null;
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19,
+    }).addTo(mapRef.current);
 
-  const center = positions[0];
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // 2. DRAW ROUTE & FLY-TO
+  useEffect(() => {
+    if (!mapRef.current || !customData || customData.length === 0) {
+      // Clear existing route if data is empty
+      if (routeLayerRef.current) {
+        routeLayerRef.current.remove();
+        routeLayerRef.current = null;
+      }
+      return;
+    }
+
+    const latLngs = customData.map(p => [p.lat, p.lng] as L.LatLngExpression);
+
+    // Remove old layer if it exists
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+    }
+
+    // Add new route line
+    routeLayerRef.current = L.polyline(latLngs, {
+      color: "#2563eb", // Blue-600
+      weight: 6,
+      opacity: 0.8,
+      lineJoin: 'round'
+    }).addTo(mapRef.current);
+
+    // TRIGGER THE FLY-TO
+    const bounds = L.latLngBounds(latLngs);
+    mapRef.current.flyToBounds(bounds, {
+      padding: [80, 80], // Space for our UI overlays
+      duration: 1.5
+    });
+
+  }, [customData]);
 
   return (
-    <MapContainer center={center} zoom={15} className="h-full w-full">
-      <ChangeView center={center} />
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <Polyline 
-        positions={positions} 
-        pathOptions={{ color: '#00b7ff', weight: 8, opacity: 0.8, lineJoin: 'round', lineCap: 'round' }} 
-      />
-      <Marker position={positions[0]} icon={icon} />
-      <Marker position={positions[positions.length - 1]} icon={icon} />
-    </MapContainer>
+    <div 
+      ref={containerRef} 
+      className="h-full w-full" 
+      style={{ background: "#f8fafc" }} 
+    />
   );
 }
