@@ -1,20 +1,38 @@
 "use client";
+
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import "./globals.css"; // Ensure your Tailwind styles are imported
+import { auth } from "@/src/lib/firebase/client";
+import { onAuthStateChanged, User } from "firebase/auth";
+import "./globals.css";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  // Sync Auth State for the Profile Icon
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const rootPages = ["/today", "/schedule", "/discover", "/toolbox"];
   const isRootPage = rootPages.includes(pathname);
 
   const getPageTitle = () => {
+    // Dynamic Routes
     if (pathname === "/toolbox/routes") return "My Routes";
     if (pathname === "/toolbox/groups") return "My Groups";
     if (pathname.includes("/routes/create")) return "New Route";
     if (pathname.includes("/routes/edit")) return "Edit Path";
+    if (pathname.includes("/groups/create")) return "New Hub";
+    if (pathname.includes("/groups/edit")) return "Edit Hub";
+    if (pathname.includes("/settings/profile")) return "Command Center";
+    if (pathname.includes("/schedule/create")) return "New Mission";
     
     const titles: Record<string, string> = { 
       "/today": "Today", 
@@ -42,7 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {!isRootPage && (
                 <button 
                   onClick={() => router.back()}
-                  className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-200 text-slate-400 active:scale-90 transition-transform"
+                  className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-200 text-slate-400 active:scale-90 transition-transform hover:bg-slate-100"
                 >
                   <span className="material-symbols-rounded">arrow_back</span>
                 </button>
@@ -51,8 +69,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {getPageTitle()}
               </h1>
             </div>
-            <Link href="/settings/profile" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden active:scale-90 transition-transform">
-              <span className="material-symbols-rounded text-slate-400">person</span>
+
+            {/* DYNAMIC PROFILE ICON */}
+            <Link 
+              href="/settings/profile" 
+              className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden active:scale-90 transition-all hover:border-blue-400"
+            >
+              {user?.photoURL ? (
+                <img 
+                  src={user.photoURL} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="material-symbols-rounded text-slate-400">person</span>
+              )}
             </Link>
           </header>
 
@@ -64,7 +95,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* NAVBAR: Only shows on Root-pages */}
           {isRootPage && (
             <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
-              {/* Replace the div below with your actual Navbar component items */}
               <div className="bg-slate-900 rounded-full p-2 shadow-2xl flex items-center gap-2">
                  <Link href="/today" className={`p-4 rounded-full transition-colors ${pathname === '/today' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>
                   <span className="material-symbols-rounded">home</span>

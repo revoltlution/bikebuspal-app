@@ -1,6 +1,15 @@
 import { ref, deleteObject,uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "./firebase/client";
 
+export const uploadAvatar = async (uid: string, file: File) => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `avatar_${Date.now()}.${fileExt}`;
+  const storageRef = ref(storage, `users/${uid}/avatars/${fileName}`);
+  
+  const snapshot = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snapshot.ref);
+};
+
 export const deleteGroupImage = async (fileUrl: string) => {
   if (!fileUrl) return;
   // Create a reference from the URL
