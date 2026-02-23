@@ -142,3 +142,11 @@ header {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* In your global.css */
+.map-hole-punch {
+  background: transparent !important;
+  background-clip: padding-box;
+  /* This ensures the content inside the bubble (like text) stays visible 
+     while the background is erased to show the map below */
+}
