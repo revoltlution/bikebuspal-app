@@ -24,6 +24,7 @@ export default function CreateTripPage() {
     hubId: "",
     routeId: "",
     isPublic: true,
+    date: "", // Initial mission date
     startTime: "",
     endTime: "",
     recurrence: "none", // none, daily, weekly, monthly
@@ -150,36 +151,70 @@ export default function CreateTripPage() {
           </div>
         </div>
 
-        {/* SECTION 4: SCHEDULE & RECURRENCE */}
+        {/* SECTION 4: SCHEDULE */}
         <div className="space-y-4">
-          <h3 className="text-xs font-black uppercase text-blue-600 tracking-widest">4. Schedule</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <input type="time" className="bg-white p-5 rounded-3xl border border-slate-200 font-bold shadow-sm" onChange={(e) => setFormData({...formData, startTime: e.target.value})} />
-            <input type="time" className="bg-white p-5 rounded-3xl border border-slate-200 font-bold shadow-sm" onChange={(e) => setFormData({...formData, endTime: e.target.value})} />
-          </div>
-          
-          <select 
-            className="w-full bg-slate-900 text-white p-5 rounded-3xl font-bold shadow-xl"
-            onChange={(e) => setFormData({...formData, recurrence: e.target.value})}
-          >
-            <option value="none">One-Time Event</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-          
-          {formData.recurrence === 'weekly' && (
-            <div className="flex justify-between p-2 animate-in slide-in-from-top-2">
-              {['M','T','W','T','F','S','S'].map((day, i) => (
-                <button 
-                  key={i} type="button"
-                  className="w-10 h-10 rounded-full border border-slate-200 font-black text-xs hover:bg-blue-600 hover:text-white transition-colors"
-                >
-                  {day}
-                </button>
-              ))}
+        <h3 className="text-xs font-black uppercase text-blue-600 tracking-widest">4. Schedule</h3>
+        
+        {/* Primary Launch Date */}
+        <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Launch Date</label>
+            <input 
+            type="date" 
+            required
+            className="w-full bg-white p-5 rounded-3xl border border-slate-200 font-bold shadow-sm outline-none focus:border-blue-500 transition-colors"
+            onChange={(e) => setFormData({...formData, date: e.target.value})}
+            />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Start Time</label>
+            <input type="time" required className="w-full bg-white p-5 rounded-3xl border border-slate-200 font-bold shadow-sm" onChange={(e) => setFormData({...formData, startTime: e.target.value})} />
             </div>
-          )}
+            <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Est. End Time</label>
+            <input type="time" className="w-full bg-white p-5 rounded-3xl border border-slate-200 font-bold shadow-sm" onChange={(e) => setFormData({...formData, endTime: e.target.value})} />
+            </div>
+        </div>
+        
+        <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Repeat</label>
+            <select 
+            className="w-full bg-slate-900 text-white p-5 rounded-3xl font-bold shadow-xl appearance-none"
+            onChange={(e) => setFormData({...formData, recurrence: e.target.value})}
+            >
+            <option value="none">One-Time Mission</option>
+            <option value="daily">Every Day</option>
+            <option value="weekly">Weekly on...</option>
+            <option value="monthly">Monthly</option>
+            </select>
+        </div>
+        
+        {/* Weekly Day Selector */}
+        {formData.recurrence === 'weekly' && (
+            <div className="flex justify-between p-2 animate-in slide-in-from-top-2">
+            {['M','T','W','T','F','S','S'].map((day, i) => {
+                const isSelected = formData.selectedDays.includes(day);
+                return (
+                <button 
+                    key={i} 
+                    type="button"
+                    onClick={() => {
+                    const newDays = isSelected 
+                        ? formData.selectedDays.filter(d => d !== day)
+                        : [...formData.selectedDays, day];
+                    setFormData({...formData, selectedDays: newDays});
+                    }}
+                    className={`w-10 h-10 rounded-full border font-black text-xs transition-all ${
+                    isSelected ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'
+                    }`}
+                >
+                    {day}
+                </button>
+                )
+            })}
+            </div>
+        )}
         </div>
 
         <button 
