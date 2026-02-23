@@ -16,9 +16,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      // If not logged in and not already on the login page, go to login
+      if (!currentUser && pathname !== "/login") {
+        router.push("/login");
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [pathname, router]);
 
   const rootPages = ["/today", "/schedule", "/discover", "/toolbox"];
   const isRootPage = rootPages.includes(pathname);
