@@ -15,6 +15,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
+  // 1. Identify "Preview" pages where the background map should be DISABLED
+  const isDetailsPage = 
+    pathname.includes('/routes/') || 
+    pathname.includes('/schedule/') || 
+    pathname.includes('/groups/');
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -67,7 +73,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <MapProvider>
       <div className="relative min-h-screen flex flex-col">
-        <GlobalMap />
+        
+        {/* 2. ONLY SHOW GLOBAL MAP IF NOT ON A DETAILS PAGE */}
+        {!isLoginPage && !isDetailsPage && <GlobalMap />}
+
         <div className="relative z-10 flex flex-col min-h-screen pointer-events-none">
           {!isLoginPage && (
             <header className="fixed top-0 left-0 right-0 pt-[env(safe-area-inset-top,0px)] bg-white/80 backdrop-blur-xl z-[100] px-6 flex items-center justify-between border-b border-slate-200/50 pointer-events-auto"
@@ -88,7 +97,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             </header>
           )}
 
-          <main className={`flex-1 flex flex-col pointer-events-auto ${isLoginPage ? "pt-0" : "pt-20"}`}>
+          {/* 3. SET BG-SLATE-50 ON DETAILS PAGES TO COVER THE TRANSPARENCY */}
+          <main className={`flex-1 flex flex-col pointer-events-auto ${isLoginPage ? "pt-0" : "pt-20"} ${isDetailsPage ? 'bg-slate-50' : 'bg-transparent'}`}>
             {children}
           </main>
 

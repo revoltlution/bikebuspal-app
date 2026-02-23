@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import dynamic from "next/dynamic"; // Import dynamic
 import { db, auth } from "@/src/lib/firebase/client";
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore"; // Added arrayRemove
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+// ... other imports
 import { BRANDING } from "@/src/lib/branding";
 import { getSecureRiderData, RiderData } from "@/src/lib/riderService";
 import { useRouter } from "next/navigation";
@@ -24,6 +26,16 @@ interface TripData {
   recurrence: string;
 }
 
+// Ensure this is OUTSIDE the TripDetailsPage function
+const MapControl = dynamic(() => import("@/src/components/MapControl"), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center">
+      <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">Loading Map...</span>
+    </div>
+  )
+});
+
 export default function TripDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -32,6 +44,9 @@ export default function TripDetailsPage({ params }: { params: Promise<{ id: stri
   const [trip, setTrip] = useState<TripData | null>(null);
   const [participants, setParticipants] = useState<RiderData[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // 2. ADD THIS LOCAL STATE
+  const [coords, setCoords] = useState<[number, number][]>([]);
 
   // Logic: Join
   const handleJoin = async (role: 'participant' | 'leader') => {
@@ -106,46 +121,39 @@ export default function TripDetailsPage({ params }: { params: Promise<{ id: stri
 
   // map state management for route preview
 useEffect(() => {
-  if (!trip?.routeId) return;
+    if (!trip?.routeId) return;
 
-  const fetchRoute = async () => {
-    try {
-      const routeSnap = await getDoc(doc(db, "routes", trip.routeId!));
-      if (routeSnap.exists()) {
-        const rawCoords = routeSnap.data().coordinates || [];
-        
-        if (rawCoords.length > 0) {
-          // Leaflet often prefers [lat, lng] or specifically formatted objects
-          // Let's stick to the {lat, lng} object but ensure they are numbers
-          const formattedPoints = rawCoords.map((c: any) => ({ 
-            lat: Number(c[1]), 
-            lng: Number(c[0]) 
-          }));
-
-          setActiveRoute({
-            id: trip.routeId!,
-            coordinates: formattedPoints,
-            startPoint: formattedPoints[0],
-            endPoint: formattedPoints[formattedPoints.length - 1]
-          });
+    const fetchRoute = async () => {
+      try {
+        const routeSnap = await getDoc(doc(db, "routes", trip.routeId!));
+        if (routeSnap.exists()) {
+          const rawCoords = routeSnap.data().coordinates || [];
           
-          setMode('trip');
-        }
-      }
-    } catch (err) {
-      console.error("Map Preview Error:", err);
-    }
-  };
+          if (rawCoords.length > 0) {
+            // 3. Format coordinates for the local MapControl
+            // Standard Leaflet format is [lat, lng]
+            const mapCoords = rawCoords.map((c: any) => [Number(c.lat), Number(c.lng)] as [number, number]);
+            setCoords(mapCoords);
 
-  fetchRoute();
-  return () => { 
-    setActiveRoute(null); 
-    setMode('discovery'); 
-  };
-}, [trip?.routeId, setActiveRoute, setMode]);
+            // Keep your context sync if you still use the GlobalMap elsewhere
+            setActiveRoute({
+              id: trip.routeId!,
+              coordinates: rawCoords.map((c: any) => ({ lat: Number(c.lat), lng: Number(c.lng) })),
+              startPoint: rawCoords[0],
+              endPoint: rawCoords[rawCoords.length - 1]
+            });
+            setMode('trip');
+          }
+        }
+      } catch (err) {
+        console.error("Map Preview Error:", err);
+      }
+    };
+
+    fetchRoute();
+  }, [trip?.routeId, setActiveRoute, setMode]);
 
   if (loading) return <div className="p-20 text-center font-black italic uppercase text-slate-300 animate-pulse">Syncing...</div>;
-
   const currentUserId = auth.currentUser?.uid || "";
   const isLeader = trip?.leaderIds?.includes(currentUserId);
   const isJoined = trip?.participants?.includes(currentUserId);
@@ -244,12 +252,17 @@ useEffect(() => {
         </section>
 
         {/* 4. INTERACTIVE MAP PREVIEW */}
-        <section className="relative w-full h-80 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-transparent group">
-          
-          {/* THIS IS THE HOLE: It must have no background to let the z-0 map show */}
-          <div className="absolute inset-0 bg-transparent pointer-events-none" />
+        <section className="relative w-full h-80 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl bg-slate-100 group pointer-events-auto">
+          <div className="absolute inset-0 z-10">
+            {/* 4. Use coords state with a safety check */}
+            {coords.length > 0 && (
+              <MapControl 
+                customData={coords}
+              />
+            )}
+          </div>
 
-          {/* START / FINISH INDICATORS (UI Overlay) */}
+          {/* UI OVERLAY: We keep this, but set pointer-events-none so it doesn't block the map clicks */}
           <div className="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none z-20">
             <div className="flex justify-between items-start">
               <div className="bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2">
@@ -263,14 +276,14 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Center Overlay */}
+            {/* Center Overlay Label */}
             <div className="self-center bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">Route Preview</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white">Interactive Route</p>
             </div>
           </div>
 
-          {/* Subtle Inner Glow to define the map area */}
-          <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.1)] rounded-[2.5rem]" />
+          {/* Subtle Inner Glow */}
+          <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.1)] rounded-[2.5rem] z-30" />
         </section>
       </div>
     </div>

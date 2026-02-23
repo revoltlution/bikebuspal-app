@@ -42,7 +42,14 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  mapRef.current = map;
+  // Inside MapControl.tsx - Ensure these settings are NOT disabled
+  mapRef.current = L.map(containerRef.current, {
+    zoomControl: false, // Keep false for clean look
+    dragging: true,      // MUST be true for interaction
+    scrollWheelZoom: false, // Recommended for mobile so they can still scroll the page
+    touchZoom: true,
+    attributionControl: false
+  });
 
   // IMPORTANT: The "Next.js Lifecycle" Refresh
   const timer = setTimeout(() => {
