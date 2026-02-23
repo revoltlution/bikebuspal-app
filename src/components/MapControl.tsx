@@ -125,10 +125,10 @@ export default function MapControl({ customData, center, startPoint, endPoint }:
   }, [customData]);
 
   return (
-  <div className="h-full w-full min-h-[400px] relative"> 
+  <div className="w-full h-full min-h-[100dvh] relative"> 
     <div 
       ref={containerRef} 
-      className="absolute inset-0" // Absolute fill ensures it takes parent's 400px
+      className="absolute inset-0" 
     />
   </div>
 );

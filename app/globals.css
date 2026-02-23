@@ -1,8 +1,11 @@
+/* 1. Leaflet must come first so Tailwind doesn't override its internal positioning */
+@import "leaflet/dist/leaflet.css";
+
+/* 2. Tailwind v4/v3 imports */
 @import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "leaflet/dist/leaflet.css";
 
 /* FORCE LAYOUT - This will work even if Tailwind utilities fail */
 body {
@@ -11,6 +14,46 @@ body {
   background-color: #f8fafc;
   font-family: sans-serif;
 }
+
+/* LEAFLET SPECIFIC RE-RIDES - Add these to be safe */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1;
+  /* If this is gray, the tiles aren't loading. If it's blue, the tiles are missing. */
+  background-color: #f8fafc !important; 
+}
+
+/* Fix for the 'Invisible Tiles' bug in Next.js */
+.leaflet-pane {
+  z-index: 2;
+}
+.leaflet-tile-pane {
+  z-index: 1;
+}
+
+/* Ensure the map container feels like a native app viewport */
+.map-viewport {
+  height: calc(100vh - 250px);
+  width: 100%;
+}
+
+/* Make the Leaflet path pop */
+.leaflet-interactive {
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* In your global.css */
+.map-hole-punch {
+  background: transparent !important;
+  background-clip: padding-box;
+  /* This ensures the content inside the bubble (like text) stays visible 
+     while the background is erased to show the map below */
+}
+
+
 
 .page {
   padding: 20px;
@@ -131,30 +174,3 @@ header {
   color: #991b1b !important;
 }
 
-/* Ensure the map container feels like a native app viewport */
-.map-viewport {
-  height: calc(100vh - 250px);
-  width: 100%;
-}
-
-/* Make the Leaflet path pop */
-.leaflet-interactive {
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.2));
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* In your global.css */
-.map-hole-punch {
-  background: transparent !important;
-  background-clip: padding-box;
-  /* This ensures the content inside the bubble (like text) stays visible 
-     while the background is erased to show the map below */
-}
-
-/* Ensure the map container actually has a size */
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-  background-color: #f8fafc; /* Placeholder so you can see the box */
-}
