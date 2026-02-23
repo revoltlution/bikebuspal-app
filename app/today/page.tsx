@@ -10,33 +10,39 @@ export default function TodayPage() {
   const [upcomingTrip, setUpcomingTrip] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTodayTrip = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+ useEffect(() => {
+  const fetchTodayTrip = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
 
-      try {
-        // Get the next trip the user has joined
-        const q = query(
-          collection(db, "trips"),
-          where("participants", "array-contains", user.uid),
-          orderBy("date", "asc"),
-          limit(1)
-        );
+    try {
+      // 1. Get today's date in YYYY-MM-DD format (matches HTML date inputs)
+      const today = new Date().toISOString().split('T')[0];
 
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          setUpcomingTrip({ id: snap.docs[0].id, ...snap.docs[0].data() });
-        }
-      } catch (err) {
-        console.error("Today Page Error:", err);
-      } finally {
-        setLoading(false);
+      const q = query(
+        collection(db, "trips"),
+        where("participants", "array-contains", user.uid),
+        // 2. Filter out the past
+        where("date", ">=", today), 
+        orderBy("date", "asc"),
+        limit(1)
+      );
+
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        setUpcomingTrip({ id: snap.docs[0].id, ...snap.docs[0].data() });
+      } else {
+        setUpcomingTrip(null); // Ensure state is cleared if no future trips
       }
-    };
+    } catch (err) {
+      console.error("Today Page Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchTodayTrip();
-  }, []);
+  fetchTodayTrip();
+}, []);
 
   if (loading) return <div className="p-20 text-center animate-pulse font-black uppercase text-slate-300">Syncing...</div>;
 
